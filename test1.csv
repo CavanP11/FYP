@@ -1,0 +1,5 @@
+"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit"
+"Testing.Cavan.k512EncapsulatedKeyGen","avgt",16,1,130104.305203,NaN,"ns/op"
+"Testing.Cavan.k512KeyGen","avgt",16,1,51122.004704,NaN,"ns/op"
+"Testing.Cavan.k512UnwrapKey","avgt",16,1,70978.067824,NaN,"ns/op"
+"Testing.Cavan.k512WrapKey","avgt",16,1,61773.207238,NaN,"ns/op"

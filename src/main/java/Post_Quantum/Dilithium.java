@@ -15,11 +15,9 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
-
 // ********************************** \\
 // * Section 2: Benchmark Variables * \\
 // ********************************** \\
-
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(iterations = 1, time = 1)
@@ -28,11 +26,9 @@ import static org.junit.Assert.assertEquals;
 @Fork(1)
 @State(Scope.Benchmark)
 public class Dilithium {
-
     // ************************ \\
     // * Section 3: Variables * \\
     // ************************ \\
-
     private static KeyPairGenerator d2KPG;    private static KeyPairGenerator d3KPG;    private static KeyPairGenerator d5KPG;
     private static KeyPairGenerator d2AesKPG; private static KeyPairGenerator d3AesKPG; private static KeyPairGenerator d5AesKPG;
 
@@ -49,18 +45,14 @@ public class Dilithium {
     private Signature d2AesSig; private Signature d3AesSig; private Signature d5AesSig;
 
     private byte[] plaintext;
-
     // ************************* \\
     // * Section 4: Parameters * \\
     // ************************* \\
-
     @Param({"256", "512", "1024", "2048"})
     static int plaintextSize;
-
     // ******************** \\
     // * Section 5: Setup * \\
     // ******************** \\
-
     @Setup
     public void setup() throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
@@ -84,7 +76,6 @@ public class Dilithium {
         d2KF = KeyFactory.getInstance("DILITHIUM2"); d3KF = KeyFactory.getInstance("DILITHIUM3"); d5KF = KeyFactory.getInstance("DILITHIUM5");
         d2AesKF = KeyFactory.getInstance("DILITHIUM2-AES"); d3AesKF = KeyFactory.getInstance("DILITHIUM3-AES"); d5AesKF = KeyFactory.getInstance("DILITHIUM5-AES");
     }
-
     // ************************** \\
     // * Section 6: Dilithium 2 * \\
     // ************************** \\
@@ -138,11 +129,9 @@ public class Dilithium {
         d2Sig.update(plaintext, 0, plaintext.length);
         return d2Sig.verify(d2Signature);
     }
-
     // ************************** \\
     // * Section 7: Dilithium 3 * \\
     // ************************** \\
-
     @Benchmark
     public static KeyPair d3KeyGeneration() {
         return d3KPG.generateKeyPair();
@@ -193,11 +182,9 @@ public class Dilithium {
         d3Sig.update(plaintext, 0, plaintext.length);
         return d3Sig.verify(d3Signature);
     }
-
     // ************************** \\
     // * Section 8: Dilithium 5 * \\
     // ************************** \\
-
     @Benchmark
     public static KeyPair d5KeyGeneration() {
         return d5KPG.generateKeyPair();
@@ -248,11 +235,9 @@ public class Dilithium {
         d5Sig.update(plaintext, 0, plaintext.length);
         return d5Sig.verify(d5Signature);
     }
-
     // ****************************** \\
     // * Section 9: Dilithium 2 AES * \\
     // ****************************** \\
-
     @Benchmark
     public static KeyPair d2AesKeyGeneration() {
         return d2AesKPG.generateKeyPair();
@@ -303,11 +288,9 @@ public class Dilithium {
         d2AesSig.update(plaintext, 0, plaintext.length);
         return d2AesSig.verify(d2AesSignature);
     }
-
     // ******************************* \\
     // * Section 10: Dilithium 3 AES * \\
     // ******************************* \\
-
     @Benchmark
     public static KeyPair d3AesKeyGeneration() {
         return d3AesKPG.generateKeyPair();
@@ -358,11 +341,9 @@ public class Dilithium {
         d3AesSig.update(plaintext, 0, plaintext.length);
         return d3AesSig.verify(d3AesSignature);
     }
-
     // ******************************* \\
     // * Section 11: Dilithium 5 AES * \\
     // ******************************* \\
-
     @Benchmark
     public static KeyPair d5AesKeyGeneration() {
         return d5AesKPG.generateKeyPair();

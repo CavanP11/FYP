@@ -1,5 +1,4 @@
 package Post_Quantum;
-
 // ********************** \\
 // * Section 1: Imports * \\
 // ********************** \\
@@ -9,11 +8,9 @@ import org.bouncycastle.pqc.jcajce.spec.PicnicParameterSpec;
 import org.openjdk.jmh.annotations.*;
 import java.security.*;
 import java.util.concurrent.TimeUnit;
-
 // ********************************** \\
 // * Section 2: Benchmark Variables * \\
 // ********************************** \\
-
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(iterations = 2, time = 2 )
@@ -40,20 +37,16 @@ public class Picnic {
     private Signature l1fullSig; private Signature l3fullSig; private Signature l5fullSig;
 
     private byte[] plaintext;
-
     // ************************* \\
     // * Section 4: Parameters * \\
     // ************************* \\
-
     @Param({"256", "512", "1024", "2048"})
     static int plaintextSize;
     @Param({"Picnic", "SHA3-512WITHPicnic", "SHA512WITHPicnic", "SHAKE256WITHPICNIC"})
     static String algorithm;
-
     // ******************** \\
     // * Section 5: Setup * \\
     // ******************** \\
-
     @Setup
     public void setup() throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
@@ -75,11 +68,9 @@ public class Picnic {
         l1fsSignature = l1fsSign(); l3fsSignature = l3fsSign(); l5fsSignature = l5fsSign();
         l1fullSignature = l1fullSign(); l3fullSignature = l3fullSign(); l5fullSignature = l5fullSign();
     }
-
     // ************************** \\
     // * Section 6: Picnic L1FS * \\
     // ************************** \\
-
     @Benchmark
     public static KeyPair l1fsKeyGeneration() {
         return l1fsKPG.generateKeyPair();
@@ -96,11 +87,9 @@ public class Picnic {
         l1fsSig.update(plaintext, 0, plaintext.length);
         return l1fsSig.verify(l1fsSignature);
     }
-
     // ************************** \\
     // * Section 7: Picnic L3FS * \\
     // ************************** \\
-
     @Benchmark
     public static KeyPair l3fsKeyGeneration() {
         return l3fsKPG.generateKeyPair();
@@ -119,11 +108,9 @@ public class Picnic {
         l3fsSig.update(plaintext, 0, plaintext.length);
         return l3fsSig.verify(l3fsSignature);
     }
-
     // ************************** \\
     // * Section 8: Picnic L5FS * \\
     // ************************** \\
-
     @Benchmark
     public static KeyPair l5fsKeyGeneration() {
         return l5fsKPG.generateKeyPair();
@@ -142,11 +129,9 @@ public class Picnic {
         l5fsSig.update(plaintext, 0, plaintext.length);
         return l5fsSig.verify(l5fsSignature);
     }
-
     // **************************** \\
     // * Section 9: Picnic L1FULL * \\
     // **************************** \\
-
     @Benchmark
     public static KeyPair l1fullKeyGeneration() {
         return l1fullKPG.generateKeyPair();
@@ -165,11 +150,9 @@ public class Picnic {
         l1fullSig.update(plaintext, 0, plaintext.length);
         return l1fullSig.verify(l1fullSignature);
     }
-
     // ***************************** \\
     // * Section 10: Picnic L3FULL * \\
     // ***************************** \\
-
     @Benchmark
     public static KeyPair l3fullKeyGeneration() {
         return l3fullKPG.generateKeyPair();
@@ -188,11 +171,9 @@ public class Picnic {
         l3fullSig.update(plaintext, 0, plaintext.length);
         return l3fullSig.verify(l3fullSignature);
     }
-
     // ***************************** \\
     // * Section 11: Picnic L5FULL * \\
     // ***************************** \\
-
     @Benchmark
     public static KeyPair l5fullKeyGeneration() {
         return l5fullKPG.generateKeyPair();

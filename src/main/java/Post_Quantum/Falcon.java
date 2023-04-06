@@ -1,22 +1,15 @@
 package Post_Quantum;
-
 // **********************
 // * Section 1: Imports *
 // **********************
-
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.FalconParameterSpec;
 import org.openjdk.jmh.annotations.*;
 import java.security.*;
 import java.util.concurrent.TimeUnit;
-
 // ********************************** \\
 // * Section 2: Benchmark Variables * \\
 // ********************************** \\
-
-// ************************** \\
-// * Section 3: Dilithium 5 * \\
-// ************************** \\
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(iterations = 1, time = 1 )
@@ -25,9 +18,8 @@ import java.util.concurrent.TimeUnit;
 @Fork(1)
 @State(Scope.Benchmark)
 public class Falcon {
-
     // ************************ \\
-    // * Section 4: Variables * \\
+    // * Section 3: Variables * \\
     // ************************ \\
     private static KeyPairGenerator kpg; private static KeyPairGenerator kpg2;
 
@@ -38,15 +30,13 @@ public class Falcon {
     private Signature sig512; private Signature sig1024;
 
     private byte[] plaintext;
-
     // ************************* \\
-    // * Section 5: Parameters * \\
+    // * Section 4: Parameters * \\
     // ************************* \\
     @Param({"256", "512", "1024", "2048"})
     static int plaintextSize;
-
     // ************************ \\
-    // * Section 6: Setup     * \\
+    // * Section 5: Setup     * \\
     // ************************ \\
 
     @Setup
@@ -67,11 +57,9 @@ public class Falcon {
         falcon512KP = kpg.generateKeyPair(); falcon1024KP = kpg2.generateKeyPair();
         falcon512Signature = falcon512Sign(); falcon1024Signature = falcon1024Sign();
     }
-
     // ************************* \\
-    // * Section 7: Falcon 512 * \\
+    // * Section 6: Falcon 512 * \\
     // ************************* \\
-
     @Benchmark
     public static KeyPair falcon512KeyGeneration() throws Exception {
         return kpg.generateKeyPair();
@@ -90,11 +78,9 @@ public class Falcon {
         sig512.update(plaintext, 0, plaintext.length);
         return sig512.verify(falcon512Signature);
     }
-
     // ************************** \\
-    // * Section 8: Falcon 1024 * \\
+    // * Section 7: Falcon 1024 * \\
     // ************************** \\
-
     @Benchmark
     public static KeyPair falcon1024KeyGeneration() throws Exception {
         return kpg2.generateKeyPair();

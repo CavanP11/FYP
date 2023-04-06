@@ -1,6 +1,8 @@
 package UI;
 
 import Post_Quantum.Dilithium;
+import Testing.Cavan;
+import Testing.Kyber;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.provider.Falcon;
 import org.bouncycastle.pqc.jcajce.provider.Picnic;
@@ -15,8 +17,6 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.security.Security;
 
 public class BenchmarkUI {
@@ -63,17 +63,14 @@ public class BenchmarkUI {
         }
 
         // Set up the button event listener
-        runButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String selectedAlgorithm1 = (String) comboBox1.getSelectedItem();
-                String selectedAlgorithm2 = (String) comboBox2.getSelectedItem();
-                try {
-                    assert selectedAlgorithm1 != null;
-                    runBenchmarks(selectedAlgorithm1, selectedAlgorithm2);
-                } catch (RunnerException ex) {
-                    throw new RuntimeException(ex);
-                }
+        runButton.addActionListener(e -> {
+            String selectedAlgorithm1 = (String) comboBox1.getSelectedItem();
+            String selectedAlgorithm2 = (String) comboBox2.getSelectedItem();
+            try {
+                assert selectedAlgorithm1 != null;
+                runBenchmarks(selectedAlgorithm1, selectedAlgorithm2);
+            } catch (RunnerException ex) {
+                throw new RuntimeException(ex);
             }
         });
     }
@@ -99,7 +96,7 @@ public class BenchmarkUI {
                 gcProfilerCheckBox2,
                 asmProfilerCheckBox2
         };
-        int result = JOptionPane.showOptionDialog(
+        JOptionPane.showOptionDialog(
                 frame,
                 message,
                 "Confirm",
@@ -109,7 +106,7 @@ public class BenchmarkUI {
                 new String[]{"OK"},
                 "default"
         );
-        int result2 = JOptionPane.showOptionDialog(
+        JOptionPane.showOptionDialog(
                 frame,
                 message2,
                 "Confirm",
@@ -120,12 +117,8 @@ public class BenchmarkUI {
                 "default"
         );
 
-        boolean includeStackProfiler = stackProfilerCheckBox.isSelected();
-        boolean includeGCProfiler = gcProfilerCheckBox.isSelected();
-        boolean includeASMProfiler = asmProfilerCheckBox.isSelected();
-        boolean includeStackProfiler2 = stackProfilerCheckBox2.isSelected();
-        boolean includeGCProfiler2 = gcProfilerCheckBox2.isSelected();
-        boolean includeASMProfiler2 = asmProfilerCheckBox2.isSelected();
+        boolean includeStackProfiler = stackProfilerCheckBox.isSelected(); boolean includeGCProfiler = gcProfilerCheckBox.isSelected(); boolean includeASMProfiler = asmProfilerCheckBox.isSelected();
+        boolean includeStackProfiler2 = stackProfilerCheckBox2.isSelected(); boolean includeGCProfiler2 = gcProfilerCheckBox2.isSelected(); boolean includeASMProfiler2 = asmProfilerCheckBox2.isSelected();
 
         OptionsBuilder builder = (OptionsBuilder) new OptionsBuilder()
                 .resultFormat(ResultFormatType.CSV);
@@ -151,62 +144,57 @@ public class BenchmarkUI {
             builder2.addProfiler(WinPerfAsmProfiler.class);
         }
         switch (algorithm1) {
-
             case "Falcon" -> {
-                builder.include(Falcon.class.getSimpleName())
-                        .result("Falcon_Benchmarks.cvs");
+                builder.include(Cavan.class.getSimpleName())
+                        .result("Falcon_Benchmarks.csv");
                 Options options = builder.build();
                 new Runner(options).run();
-                break;
             }
             case "Picnic" -> {
                 builder.include(Picnic.class.getSimpleName())
-                        .result("Picnic_Benchmarks.cvs");
+                        .result("Picnic_Benchmarks.csv");
                 Options options = builder.build();
                 new Runner(options).run();
-                break;
             }
             case "CRYSTALS-Dilithium" -> {
                 builder.include(Dilithium.class.getSimpleName())
-                        .result("Dilithium_Benchmarks.cvs");
+                        .result("Dilithium_Benchmarks.csv");
                 Options options = builder.build();
                 new Runner(options).run();
-                break;
             }
-            /* case "CRYSTALS-Kyber" -> {
+            case "CRYSTALS-Kyber" -> {
                 builder.include(Kyber.class.getSimpleName())
-                        .result("Kyber_Benchmarks.cvs");
-                break;
-            } */
+                        .result("Kyber_Benchmarks.csv");
+                Options options = builder.build();
+                new Runner(options).run();
+            }
             default -> throw new IllegalArgumentException("Invalid algorithm selected: " + algorithm1);
         }
         switch (algorithm2) {
             case "Falcon" -> {
-                builder.include(Falcon.class.getSimpleName())
-                        .result("Falcon_Benchmarks.cvs");
+                builder2.include(Falcon.class.getSimpleName())
+                        .result("Falcon_Benchmarks.csv");
                 Options options = builder2.build();
                 new Runner(options).run();
-                break;
             }
             case "Picnic" -> {
-                builder.include(Picnic.class.getSimpleName())
-                        .result("Picnic_Benchmarks.cvs");
+                builder2.include(Picnic.class.getSimpleName())
+                        .result("Picnic_Benchmarks.csv");
                 Options options = builder2.build();
                 new Runner(options).run();
-                break;
             }
             case "CRYSTALS-Dilithium" -> {
-                builder.include(Dilithium.class.getSimpleName())
-                        .result("Dilithium_Benchmarks.cvs");
+                builder2.include(Dilithium.class.getSimpleName())
+                        .result("Dilithium_Benchmarks.csv");
                 Options options = builder2.build();
                 new Runner(options).run();
-                break;
             }
-            /* case "CRYSTALS-Kyber" -> {
-                builder.include(Kyber.class.getSimpleName())
-                        .result("Kyber_Benchmarks.cvs");
-                break;
-            } */
+            case "CRYSTALS-Kyber" -> {
+                builder2.include(Kyber.class.getSimpleName())
+                        .result("Kyber_Benchmarks.csv");
+                Options options = builder2.build();
+                new Runner(options).run();
+            }
             default -> throw new IllegalArgumentException("Invalid algorithm selected: " + algorithm2);
         }
     }
