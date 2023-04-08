@@ -1,173 +1,148 @@
 package Testing;
 
 import com.opencsv.CSVReader;
-import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.CsvToBeanBuilder;
-import com.opencsv.bean.HeaderColumnNameMappingStrategy;
+import com.opencsv.exceptions.CsvException;
 import org.knowm.xchart.*;
-import org.knowm.xchart.internal.chartpart.Chart;
-import org.knowm.xchart.style.Styler;
+import org.knowm.xchart.style.markers.SeriesMarkers;
+
+
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 public class JMHPlotter {
 
-    private static XChartPanel<CategoryChart> chartPanel;
-    
-    public static class JMHResult {
-        private String benchmark;
-        private double score;
+    private static XYChart chart;
 
-        // Getters and setters
-        public String getBenchmark() {
-            return benchmark;
-        }
-
-        public void setBenchmark(String benchmark) {
-            this.benchmark = benchmark;
-        }
-
-        public double getScore() {
-            return score;
-        }
-
-        public void setScore(double score) {
-            this.score = score;
-        }
-        public String getShortBenchmarkName() {
-            String[] parts = benchmark.split("\\.");
-            return parts[parts.length - 1];
-        }
-    }
-
-
-    public static List<JMHResult> readJMHCSV(String filePath) throws FileNotFoundException {
-        CSVReader csvReader = new CSVReader(new FileReader(filePath));
-        HeaderColumnNameMappingStrategy<JMHResult> strategy = new HeaderColumnNameMappingStrategy<>();
-        strategy.setType(JMHResult.class);
-        CsvToBean<JMHResult> csvToBean = new CsvToBeanBuilder<JMHResult>(csvReader)
-                .withType(JMHResult.class)
-                .withMappingStrategy(strategy)
-                .withIgnoreLeadingWhiteSpace(true)
-                .build();
-        return csvToBean.parse();
-    }
-
-    public static void plotJMHResults(List<List<JMHResult>> resultsList) {
-        CategoryChart chart = new CategoryChartBuilder()
+    public static void main(String[] args) {
+        chart = new XYChartBuilder()
                 .width(800)
                 .height(600)
-                .title("JMH Benchmark Results")
-                .xAxisTitle("Benchmarks")
-                .yAxisTitle("Score (ops/s)")
+                .title("Benchmark Results")
+                .xAxisTitle("X Axis")
+                .yAxisTitle("Score")
                 .build();
 
-        chart.getStyler().setLegendPosition(Styler.LegendPosition.InsideNW);
-        chart.getStyler().setXAxisLabelRotation(45);
+        SwingWrapper<XYChart> swingWrapper = new SwingWrapper<>(chart);
+        final JFrame frame = swingWrapper.displayChart();
 
-        JButton addButton = new JButton("Add A File");
-        addButton.addActionListener(new ActionListener() {
+        JButton addButton = new JButton(new AbstractAction("Add File") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-                FileNameExtensionFilter csvFilter = new FileNameExtensionFilter("CSV files", "csv");
-                fileChooser.setFileFilter(csvFilter);
-
-                int returnValue = fileChooser.showOpenDialog(null);
-                if (returnValue == JFileChooser.APPROVE_OPTION) {
-                    File selectedFile = fileChooser.getSelectedFile();
-                    try {
-                        List<JMHResult> newResults = readJMHCSV(selectedFile.getAbsolutePath());
-                        resultsList.add(newResults);
-                        updateChart(chart, resultsList);
-                        chartPanel.revalidate();
-                        chartPanel.repaint();
-                    } catch (FileNotFoundException ex) {
-                        ex.printStackTrace();
-                    }
-                }
+                addFile(frame);
             }
         });
+        addButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JButton saveButton = new JButton("Save Chart");
-        saveButton.addActionListener(new ActionListener() {
+        JButton saveButton = new JButton(new AbstractAction("Save Graph") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-                FileNameExtensionFilter pngFilter = new FileNameExtensionFilter("PNG files", "png");
-                fileChooser.setFileFilter(pngFilter);
-
-                int returnValue = fileChooser.showSaveDialog(null);
-                if (returnValue == JFileChooser.APPROVE_OPTION) {
-                    File selectedFile = fileChooser.getSelectedFile();
-                    try {
-                        BitmapEncoder.saveBitmap(chart, selectedFile.getAbsolutePath(), BitmapEncoder.BitmapFormat.PNG);
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                }
+                saveGraph();
             }
         });
+        saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        chartPanel = new XChartPanel<>(chart);
-        JFrame frame = new JFrame("JMH Benchmark Results");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.add(chartPanel, BorderLayout.CENTER);
-
-        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
         buttonPanel.add(addButton);
         buttonPanel.add(saveButton);
-        frame.add(buttonPanel, BorderLayout.SOUTH);
 
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.add(buttonPanel, BorderLayout.NORTH);
         frame.pack();
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
-    public static void updateChart(CategoryChart chart, List<List<JMHResult>> resultsList) {
-        chart.removeSeries("Series 1");
-        chart.removeSeries("Series 2");
-        chart.removeSeries("Series 3");
-        // Add more lines if you expect more than three series
 
-        int seriesIndex = 0;
-        for (List<JMHResult> results : resultsList) {
-            List<String> benchmarkNames = new ArrayList<>();
-            List<Double> scores = new ArrayList<>();
-            for (JMHResult result : results) {
-                benchmarkNames.add(result.getShortBenchmarkName());
-                scores.add(result.getScore());
-            }
-            chart.addSeries("Series " + seriesIndex, benchmarkNames, scores);
-        }
-        chartPanel.revalidate();
-        chartPanel.repaint();
-    }
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    List<List<JMHResult>> resultsList = new ArrayList<>();
-                    plotJMHResults(resultsList);
-                } catch (Exception e) {
-                    e.printStackTrace();
+    private static void addFile(JFrame frame) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Select a CSV file");
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setAcceptAllFileFilterUsed(false);
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("CSV files", "csv");
+        fileChooser.addChoosableFileFilter(filter);
+        // Set the default starting folder
+        String userHome = System.getProperty("user.home");
+        File defaultFolder = new File(userHome);
+        fileChooser.setCurrentDirectory(defaultFolder);
+
+        int returnValue = fileChooser.showOpenDialog(null);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            List<Double> xData = new ArrayList<>();
+            List<Double> yData = new ArrayList<>();
+
+            try (CSVReader reader = new CSVReader(new FileReader(selectedFile))) {
+                List<String[]> records = reader.readAll();
+                String[] headerRow = records.remove(0);
+
+                int scoreColumnIndex = -1;
+                for (int i = 0; i < headerRow.length; i++) {
+                    if (headerRow[i].equalsIgnoreCase("score")) {
+                        scoreColumnIndex = i;
+                        break;
+                    }
                 }
+
+                if (scoreColumnIndex != -1) {
+                    int rowIndex = 1;
+                    for (String[] record : records) {
+                        xData.add((double) rowIndex);
+                        yData.add(Double.parseDouble(record[scoreColumnIndex]));
+                        rowIndex++;
+                    }
+                } else {
+                    System.err.println("Score column not found.");
+                }
+                addSeriesToChart(xData, yData, selectedFile.getName(), frame);
+            } catch (IOException | CsvException e) {
+                e.printStackTrace();
             }
-        });
+        } else {
+            System.out.println("No file selected.");
+        }
+    }
+
+    private static void addSeriesToChart(List<Double> xData, List<Double> yData, String seriesName, JFrame frame) {
+        XYSeries series = chart.addSeries(seriesName, xData, yData);
+        series.setMarker(SeriesMarkers.CIRCLE);
+        series.setLineColor(Color.BLUE);
+
+        // Update the chart's container
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    private static void saveGraph() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save graph as PNG");
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("PNG Images", "png");
+        fileChooser.addChoosableFileFilter(filter);
+        fileChooser.setFileFilter(filter);
+        fileChooser.setAcceptAllFileFilterUsed(false);
+
+        int returnValue = fileChooser.showSaveDialog(null);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File outputFile = fileChooser.getSelectedFile();
+            if (!outputFile.getName().toLowerCase().endsWith(".png")) {
+                outputFile = new File(outputFile.getParentFile(), outputFile.getName() + ".png");
+            }
+
+            try {
+                BitmapEncoder.saveBitmap(chart, outputFile.getAbsolutePath(), BitmapEncoder.BitmapFormat.PNG);
+                System.out.println("Graph saved successfully.");
+            } catch (IOException e) {
+                System.err.println("Failed to save graph.");
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("Save operation cancelled.");
+        }
     }
 }
-
-
-
-
