@@ -21,7 +21,7 @@ public class Falcon {
     // ************************ \\
     // * Section 3: Variables * \\
     // ************************ \\
-    private static KeyPairGenerator kpg; private static KeyPairGenerator kpg2;
+    private static KeyPairGenerator f512KPG; private static KeyPairGenerator f1024KPG;
 
     private KeyPair falcon512KP; private KeyPair falcon1024KP;
 
@@ -29,7 +29,7 @@ public class Falcon {
 
     private Signature sig512; private Signature sig1024;
 
-    private byte[] plaintext;
+    private static byte[] plaintext;
     // ************************* \\
     // * Section 4: Parameters * \\
     // ************************* \\
@@ -38,7 +38,6 @@ public class Falcon {
     // ************************ \\
     // * Section 5: Setup     * \\
     // ************************ \\
-
     @Setup
     public void setup() throws Exception {
         // Setting up starting variables
@@ -47,22 +46,22 @@ public class Falcon {
         SecureRandom random = new SecureRandom();
         // Falcon 512 variables
         sig512 = Signature.getInstance("Falcon-512");
-        kpg = KeyPairGenerator.getInstance("Falcon");
-        kpg.initialize(FalconParameterSpec.falcon_512, random);
+        f512KPG = KeyPairGenerator.getInstance("Falcon");
+        f512KPG.initialize(FalconParameterSpec.falcon_512, random);
         // Falcon 1024 variables
         sig1024 = Signature.getInstance("Falcon-1024");
-        kpg2 = KeyPairGenerator.getInstance("Falcon");
-        kpg2.initialize(FalconParameterSpec.falcon_1024, random);
+        f1024KPG = KeyPairGenerator.getInstance("Falcon");
+        f1024KPG.initialize(FalconParameterSpec.falcon_1024, random);
         // Using variables to call KPG class to go into verify() without impacting benchmarks
-        falcon512KP = kpg.generateKeyPair(); falcon1024KP = kpg2.generateKeyPair();
+        falcon512KP = falcon512KeyGeneration(); falcon1024KP = falcon512KeyGeneration();
         falcon512Signature = falcon512Sign(); falcon1024Signature = falcon1024Sign();
     }
     // ************************* \\
     // * Section 6: Falcon 512 * \\
     // ************************* \\
     @Benchmark
-    public static KeyPair falcon512KeyGeneration() throws Exception {
-        return kpg.generateKeyPair();
+    public static KeyPair falcon512KeyGeneration() {
+        return f512KPG.generateKeyPair();
     }
 
     @Benchmark
@@ -82,8 +81,8 @@ public class Falcon {
     // * Section 7: Falcon 1024 * \\
     // ************************** \\
     @Benchmark
-    public static KeyPair falcon1024KeyGeneration() throws Exception {
-        return kpg2.generateKeyPair();
+    public static KeyPair falcon1024KeyGeneration() {
+        return f1024KPG.generateKeyPair();
     }
 
     @Benchmark

@@ -1,4 +1,4 @@
-package Testing;
+package Post_Quantum;
 // ********************** \\
 // * Section 1: Imports * \\
 // ********************** \\
@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 // ********************************** \\
 // * Section 2: Benchmark Variables * \\
 // ********************************** \\
+@SuppressWarnings("unused")
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(iterations = 1, time = 1)

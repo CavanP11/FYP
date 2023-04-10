@@ -1,9 +1,8 @@
 package UI;
-
-import Post_Quantum.Dilithium;
-import Post_Quantum.Falcon;
-import Post_Quantum.Picnic;
-import Testing.Kyber;
+// ********************** \\
+// * Section 1: Imports * \\
+// ********************** \\
+import Post_Quantum.*;
 import org.openjdk.jmh.profile.GCProfiler;
 import org.openjdk.jmh.profile.StackProfiler;
 import org.openjdk.jmh.profile.WinPerfAsmProfiler;
@@ -12,14 +11,14 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-
 import javax.swing.*;
 import java.awt.*;
+import java.util.Objects;
 
 public class BenchmarkUI {
-    private JComboBox<String> comboBox1;
-    private JComboBox<String> comboBox2;
-
+    // *************************************** \\
+    // * Section 2: Adding UI customisation. * \\
+    // *************************************** \\
     private static void setLookAndFeel() {
         try {
             for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
@@ -48,12 +47,14 @@ public class BenchmarkUI {
             System.err.println("Failed to set Look and Feel to Nimbus.");
         }
     }
-
+    // ******************************************** \\
+    // * Section 3: Creating the page for main UI * \\
+    // ******************************************** \\
     public static JPanel createPageOne() {
         setLookAndFeel();
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-
+        // Create and position labels
         JLabel label = new JLabel("Algorithm Benchmarking");
         label.setFont(new Font("Arial", Font.BOLD, 16));
         gbc.gridx = 0;
@@ -61,8 +62,8 @@ public class BenchmarkUI {
         gbc.gridwidth = 2;
         gbc.insets = new Insets(5, 0, 5, 0);
         panel.add(label, gbc);
-
-        String[] algorithms = {"Falcon", "Picnic", "CRYSTALS-Kyber", "CRYSTALS-Dilithium"};
+        // Create combo boxes to select algorithms
+        String[] algorithms = {"CRYSTALS-Kyber", "CRYSTALS-Dilithium", "Falcon", "Picnic", "BIKE"};
         JComboBox<String> comboBox1 = new JComboBox<>(algorithms);
         JComboBox<String> comboBox2 = new JComboBox<>(algorithms);
         Dimension preferredSize = new Dimension(200, 30);
@@ -74,18 +75,15 @@ public class BenchmarkUI {
         comboBox1.setFont(font);
         comboBox2.setFont(font);
         runButton.setFont(font);
-
+        // Positioning variables
         gbc.gridwidth = 1;
         gbc.gridy = 1;
-
         gbc.gridx = 0;
         gbc.insets = new Insets(0, 0, 0, 5);
         panel.add(comboBox1, gbc);
-
         gbc.gridx = 1;
         gbc.insets = new Insets(0, 5, 0, 0);
         panel.add(comboBox2, gbc);
-
         gbc.gridy = 2;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
@@ -98,13 +96,9 @@ public class BenchmarkUI {
             String algorithm2 = (String) comboBox2.getSelectedItem();
 
             System.out.println("Running benchmarks for: " + algorithm1 + " and " + algorithm2);
-            // Call the appropriate benchmark methods based on the selected algorithms
-            JCheckBox stackProfilerCheckBox = new JCheckBox("Include Stack Profiler", false);
-            JCheckBox gcProfilerCheckBox = new JCheckBox("Include GC Profiler", false);
-            JCheckBox asmProfilerCheckBox = new JCheckBox("Include ASM Profiler", false);
-            JCheckBox stackProfilerCheckBox2 = new JCheckBox("Include Stack Profiler", false);
-            JCheckBox gcProfilerCheckBox2 = new JCheckBox("Include GC Profiler", false);
-            JCheckBox asmProfilerCheckBox2 = new JCheckBox("Include ASM Profiler", false);
+            // Call the benchmark methods based on the selected algorithms
+            JCheckBox stackProfilerCheckBox = new JCheckBox("Include Stack Profiler", false); JCheckBox gcProfilerCheckBox = new JCheckBox("Include GC Profiler", false); JCheckBox asmProfilerCheckBox = new JCheckBox("Include ASM Profiler", false);
+            JCheckBox stackProfilerCheckBox2 = new JCheckBox("Include Stack Profiler", false); JCheckBox gcProfilerCheckBox2 = new JCheckBox("Include GC Profiler", false); JCheckBox asmProfilerCheckBox2 = new JCheckBox("Include ASM Profiler", false);
             Object[] message = {
                     "This is for algorithm 1.\n*NB* Make sure you are running as Administrator to use profilers.\nOptional Profiles may increase benchmarking times.",
                     stackProfilerCheckBox,
@@ -140,12 +134,12 @@ public class BenchmarkUI {
             );
             boolean includeStackProfiler = stackProfilerCheckBox.isSelected(); boolean includeGCProfiler = gcProfilerCheckBox.isSelected(); boolean includeASMProfiler = asmProfilerCheckBox.isSelected();
             boolean includeStackProfiler2 = stackProfilerCheckBox2.isSelected(); boolean includeGCProfiler2 = gcProfilerCheckBox2.isSelected(); boolean includeASMProfiler2 = asmProfilerCheckBox2.isSelected();
-
+            // Create 2 option builders for benchmarks options
             OptionsBuilder builder = (OptionsBuilder) new OptionsBuilder()
                     .resultFormat(ResultFormatType.CSV);
             OptionsBuilder builder2 = (OptionsBuilder) new OptionsBuilder()
                     .resultFormat(ResultFormatType.CSV);
-
+            // Check if profilers are created
             if (includeStackProfiler) {
                 builder.addProfiler(StackProfiler.class);
             }
@@ -164,7 +158,196 @@ public class BenchmarkUI {
             if (includeASMProfiler2) {
                 builder2.addProfiler(WinPerfAsmProfiler.class);
             }
-            switch (algorithm1) {
+            // Switch to get options for selected algorithms
+            switch (Objects.requireNonNull(algorithm1)) {
+                case "Falcon" -> {
+                    builder.include(Falcon.class.getSimpleName())
+                            .result("Falcon_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "Picnic" -> {
+                    builder.include(Picnic.class.getSimpleName())
+                            .result("Picnic_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "CRYSTALS-Dilithium" -> {
+                    builder.include(Dilithium.class.getSimpleName())
+                            .result("Dilithium_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "CRYSTALS-Kyber" -> {
+                    builder.include(Kyber.class.getSimpleName())
+                            .result("Kyber_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "BIKE" -> {
+                    builder.include(BIKE.class.getSimpleName())
+                            .result("BIKE_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                default -> throw new IllegalArgumentException("Invalid algorithm selected: " + algorithm1);
+            }
+            switch (Objects.requireNonNull(algorithm2)) {
+                case "Falcon" -> {
+                    builder2.include(Falcon.class.getSimpleName())
+                            .result("Falcon_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "Picnic" -> {
+                    builder2.include(Picnic.class.getSimpleName())
+                            .result("Picnic_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "CRYSTALS-Dilithium" -> {
+                    builder2.include(Dilithium.class.getSimpleName())
+                            .result("Dilithium_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "CRYSTALS-Kyber" -> {
+                    builder2.include(Kyber.class.getSimpleName())
+                            .result("Kyber_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "BIKE" -> {
+                    builder.include(BIKE.class.getSimpleName())
+                            .result("BIKE_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                default -> throw new IllegalArgumentException("Invalid algorithm selected: " + algorithm2);
+            }
+        });
+        return panel;
+    }
+    // ******************************************** \\
+    // * Section 4: Creating the page for main UI * \\
+    // ******************************************** \\
+    public static JPanel createPageTwo() {
+        setLookAndFeel();
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        // Creating and position labels
+        JLabel label = new JLabel("Algorithm Benchmarking");
+        label.setFont(new Font("Arial", Font.BOLD, 16));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(5, 0, 5, 0);
+        panel.add(label, gbc);
+        // Create combo boxes to select algorithms
+        String[] algorithms = {"Falcon", "Picnic", "CRYSTALS-Kyber", "CRYSTALS-Dilithium"};
+        JComboBox<String> comboBox1 = new JComboBox<>(algorithms);
+        Dimension preferredSize = new Dimension(200, 30);
+        comboBox1.setPreferredSize(preferredSize);
+        JButton runButton = new JButton("Run Benchmarks");
+        runButton.setMargin(new Insets(10, 20, 10, 20));
+        Font font = new Font("Arial", Font.PLAIN, 16);
+        comboBox1.setFont(font);
+        runButton.setFont(font);
+        // Positioning variables
+        gbc.gridwidth = 1;
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.insets = new Insets(0, 0, 0, 5);
+        panel.add(comboBox1, gbc);
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(5, 0, 0, 0);
+        panel.add(runButton, gbc);
+
+        // Set up the button event listener
+        runButton.addActionListener(e -> {
+            String algorithm1 = (String) comboBox1.getSelectedItem();
+
+            System.out.println("Running benchmarks for: " + algorithm1);
+            // Call the benchmark methods based on the selected algorithms
+            JCheckBox stackProfilerCheckBox = new JCheckBox("Include Stack Profiler", false);
+            JCheckBox gcProfilerCheckBox = new JCheckBox("Include GC Profiler", false);
+            JCheckBox asmProfilerCheckBox = new JCheckBox("Include ASM Profiler", false);
+            Object[] message = {
+                    "This is for algorithm 1.\n*NB* Make sure you are running as Administrator to use profilers.\nOptional Profiles may increase benchmarking times.",
+                    stackProfilerCheckBox,
+                    gcProfilerCheckBox,
+                    asmProfilerCheckBox
+            };
+
+            Window topLevelWindow = SwingUtilities.windowForComponent(panel);
+            JOptionPane.showOptionDialog(
+                    topLevelWindow,
+                    message,
+                    "Confirm",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    new String[]{"OK"},
+                    "default"
+            );
+            boolean includeStackProfiler = stackProfilerCheckBox.isSelected(); boolean includeGCProfiler = gcProfilerCheckBox.isSelected(); boolean includeASMProfiler = asmProfilerCheckBox.isSelected();
+            // Creating option builder for benchmark options
+            OptionsBuilder builder = (OptionsBuilder) new OptionsBuilder()
+                    .resultFormat(ResultFormatType.CSV);
+            // Check if profilers are selected
+            if (includeStackProfiler) {
+                builder.addProfiler(StackProfiler.class);
+            }
+            if (includeGCProfiler) {
+                builder.addProfiler(GCProfiler.class);
+            }
+            if (includeASMProfiler) {
+                builder.addProfiler(WinPerfAsmProfiler.class);
+            }
+            // Switch to get options for selected algorithms
+            switch (Objects.requireNonNull(algorithm1)) {
                 case "Falcon" -> {
                     builder.include(Falcon.class.getSimpleName())
                             .result("Falcon_Benchmarks.csv");
@@ -207,51 +390,7 @@ public class BenchmarkUI {
                 }
                 default -> throw new IllegalArgumentException("Invalid algorithm selected: " + algorithm1);
             }
-            switch (algorithm2) {
-                case "Falcon" -> {
-                    builder2.include(Falcon.class.getSimpleName())
-                            .result("Falcon_Benchmarks.csv");
-                    Options options = builder2.build();
-                    try {
-                        new Runner(options).run();
-                    } catch (RunnerException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                }
-                case "Picnic" -> {
-                    builder2.include(Picnic.class.getSimpleName())
-                            .result("Picnic_Benchmarks.csv");
-                    Options options = builder2.build();
-                    try {
-                        new Runner(options).run();
-                    } catch (RunnerException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                }
-                case "CRYSTALS-Dilithium" -> {
-                    builder2.include(Dilithium.class.getSimpleName())
-                            .result("Dilithium_Benchmarks.csv");
-                    Options options = builder2.build();
-                    try {
-                        new Runner(options).run();
-                    } catch (RunnerException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                }
-                case "CRYSTALS-Kyber" -> {
-                    builder2.include(Kyber.class.getSimpleName())
-                            .result("Kyber_Benchmarks.csv");
-                    Options options = builder2.build();
-                    try {
-                        new Runner(options).run();
-                    } catch (RunnerException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                }
-                default -> throw new IllegalArgumentException("Invalid algorithm selected: " + algorithm2);
-            }
         });
         return panel;
     }
-
 }
