@@ -6,13 +6,12 @@ import org.bouncycastle.pqc.jcajce.interfaces.DilithiumKey;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
 import org.openjdk.jmh.annotations.*;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+
+import java.io.*;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 // ********************************** \\
@@ -41,10 +40,11 @@ public class Dilithium {
     private byte[] d2Signature;    private byte[] d3Signature;    private byte[] d5Signature;
     private byte[] d2AesSignature; private byte[] d3AesSignature; private byte[] d5AesSignature;
 
-    private Signature d2Sig;    private Signature d3Sig;    private Signature d5Sig;
-    private Signature d2AesSig; private Signature d3AesSig; private Signature d5AesSig;
+    private static Signature d2Sig; private static Signature d3Sig; private static Signature d5Sig;
+    private static Signature d2AesSig; private static Signature d3AesSig; private static Signature d5AesSig;
 
-    private byte[] plaintext;
+
+    private static byte[] plaintext;
     // ************************* \\
     // * Section 4: Parameters * \\
     // ************************* \\
@@ -57,18 +57,19 @@ public class Dilithium {
     public void setup() throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
         plaintext = new byte[plaintextSize];
+        // Generating KPGs
+        d2KPG = KeyPairGenerator.getInstance("DILITHIUM2"); d2KPG.initialize(DilithiumParameterSpec.dilithium2, new SecureRandom());
+        d3KPG = KeyPairGenerator.getInstance("DILITHIUM3"); d3KPG.initialize(DilithiumParameterSpec.dilithium3, new SecureRandom());
+        d5KPG = KeyPairGenerator.getInstance("DILITHIUM5"); d5KPG.initialize(DilithiumParameterSpec.dilithium5, new SecureRandom());
+        d2AesKPG = KeyPairGenerator.getInstance("DILITHIUM2-AES"); d2AesKPG.initialize(DilithiumParameterSpec.dilithium2_aes, new SecureRandom());
+        d3AesKPG = KeyPairGenerator.getInstance("DILITHIUM3-AES"); d3AesKPG.initialize(DilithiumParameterSpec.dilithium3_aes, new SecureRandom());
+        d5AesKPG = KeyPairGenerator.getInstance("DILITHIUM5-AES"); d5AesKPG.initialize(DilithiumParameterSpec.dilithium5_aes, new SecureRandom());
+        // Generating KP from KPGs
+        d2KP = d2KeyGeneration(); d3KP = d3KeyGeneration(); d5KP = d5KeyGeneration();
+        d2AesKP = d2AesKeyGeneration(); d3AesKP = d3AesKeyGeneration(); d5AesKP = d5AesKeyGeneration();
         // Creating signature instances
         d2Sig = Signature.getInstance("DILITHIUM2"); d3Sig = Signature.getInstance("DILITHIUM3"); d5Sig = Signature.getInstance("DILITHIUM5");
         d2AesSig = Signature.getInstance("DILITHIUM2-AES"); d3AesSig = Signature.getInstance("DILITHIUM3-AES"); d5AesSig = Signature.getInstance("DILITHIUM5-AES");
-        // Creating KPG instances
-        d2KPG = KeyPairGenerator.getInstance("DILITHIUM2"); d3KPG = KeyPairGenerator.getInstance("DILITHIUM3"); d5KPG = KeyPairGenerator.getInstance("DILITHIUM5");
-        d2AesKPG = KeyPairGenerator.getInstance("DILITHIUM2-AES"); d3AesKPG = KeyPairGenerator.getInstance("DILITHIUM3-AES"); d5AesKPG = KeyPairGenerator.getInstance("DILITHIUM5-AES");
-        // Initializing KPGs with Parameter Specs
-        d2KPG.initialize(DilithiumParameterSpec.dilithium2, new SecureRandom()); d3KPG.initialize(DilithiumParameterSpec.dilithium3, new SecureRandom()); d5KPG.initialize(DilithiumParameterSpec.dilithium5, new SecureRandom());
-        d2AesKPG.initialize(DilithiumParameterSpec.dilithium2_aes, new SecureRandom()); d3AesKPG.initialize(DilithiumParameterSpec.dilithium3_aes, new SecureRandom()); d5AesKPG.initialize(DilithiumParameterSpec.dilithium5_aes, new SecureRandom());
-        // Generating KP from KPGs
-        d2KP = d2KPG.generateKeyPair(); d3KP = d3KPG.generateKeyPair(); d5KP = d5KPG.generateKeyPair();
-        d2AesKP = d2AesKPG.generateKeyPair(); d3AesKP = d3AesKPG.generateKeyPair(); d5AesKP = d5AesKPG.generateKeyPair();
         // Creating signatures using the signature benchmark classes. *NB -> These runs are not benchmarked, so performance not impacted.
         d2Signature = d2Sign(); d3Signature = d3Sign(); d5Signature = d5Sign();
         d2AesSignature = d2AesSign(); d3AesSignature = d3AesSign(); d5AesSignature = d5AesSign();
@@ -117,7 +118,7 @@ public class Dilithium {
     }
 
     @Benchmark
-    public byte[] d2Sign() throws Exception {
+    public static byte[] d2Sign() throws Exception {
         d2Sig.initSign(d2KP.getPrivate(), new SecureRandom());
         d2Sig.update(plaintext, 0, plaintext.length);
         return d2Sig.sign();
@@ -393,5 +394,100 @@ public class Dilithium {
         d5AesSig.initVerify(d5AesKP.getPublic());
         d5AesSig.update(plaintext, 0, plaintext.length);
         return d5AesSig.verify(d5AesSignature);
+    }
+    // ************************************************************** \\
+    // * Section 12: Printing Out Keys, Signatures and Verification * \\
+    // ************************************************************** \\
+    public static byte[] dilithiumSign(KeyPair kp, byte[] plaintext, Signature sig) throws Exception {
+        sig.initSign(kp.getPrivate(), new SecureRandom());
+        sig.update(plaintext, 0, plaintext.length);
+        return sig.sign();
+    }
+
+    public static Boolean dilithiumVerify(KeyPair kp, byte[] sig, byte[] plaintext, Signature signature) throws Exception {
+        signature.initVerify(kp.getPublic());
+        signature.update(plaintext, 0, plaintext.length);
+        return signature.verify(sig);
+    }
+
+    private static String getKeysAsString(KeyPair keyPair) {
+        PublicKey publicKey = keyPair.getPublic();
+        PrivateKey privateKey = keyPair.getPrivate();
+
+        return "Public Key:\n " + Base64.getEncoder().encodeToString(publicKey.getEncoded()) + "\n\n" +
+                "Private Key:\n " + Base64.getEncoder().encodeToString(privateKey.getEncoded()) + "\n\n";
+    }
+
+    private static void saveDataToFile(String data, String filePath) {
+        try {
+            File file = new File(filePath);
+            File parent = file.getParentFile();
+            if (!parent.exists() && !parent.mkdirs()) {
+                throw new IllegalStateException("Couldn't create directory: " + parent);
+            }
+            FileWriter writer = new FileWriter(file, true);
+            writer.write(data + System.lineSeparator() + System.lineSeparator());
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static String getFilePath(String folderPath, String fileName) {
+        return folderPath + File.separator + fileName;
+    }
+
+    public static String decodeSignature(byte[] signature) {
+        return "Signature: " + Base64.getEncoder().encodeToString(signature);
+    }
+
+    public static void saveVerificationResult(boolean verify, String filePath) {
+        String verificationText = verify ? "Signature is valid" : "Signature is not valid";
+        saveDataToFile(verificationText, filePath);
+    }
+
+    public static void main(String[] args) throws Exception {
+        Security.addProvider(new BouncyCastlePQCProvider());
+        // Creating files / folders
+        String foldersPath = "Benchmark Results/Dilithium Benchmarks/";
+        String d2filePath = getFilePath(foldersPath, "Dilithium2_Keys.txt"); String d2SigFilePath = getFilePath(foldersPath, "Dilithium2_Signatures.txt"); String d2VerifyFilePath = getFilePath(foldersPath, "Dilithium2_Verification.txt");
+        String d3filePath = getFilePath(foldersPath, "Dilithium3_Keys.txt"); String d3SigFilePath = getFilePath(foldersPath, "Dilithium3_Signatures.txt"); String d3VerifyFilePath = getFilePath(foldersPath, "Dilithium3_Verification.txt");
+        String d5filePath = getFilePath(foldersPath, "Dilithium5_Keys.txt"); String d5SigFilePath = getFilePath(foldersPath, "Dilithium5_Signatures.txt"); String d5VerifyFilePath = getFilePath(foldersPath, "Dilithium5_Verification.txt");
+        String d2AesfilePath = getFilePath(foldersPath, "Dilithium2AES_Keys.txt"); String d2AesSigFilePath = getFilePath(foldersPath, "Dilithium2AES_Signatures.txt"); String d2AesVerifyFilePath = getFilePath(foldersPath, "Dilithium2AES_Verification.txt");
+        String d3AesfilePath = getFilePath(foldersPath, "Dilithium3AES_Keys.txt"); String d3AesSigFilePath = getFilePath(foldersPath, "Dilithium3AES_Signatures.txt"); String d3AesVerifyFilePath = getFilePath(foldersPath, "Dilithium3AES_Verification.txt");
+        String d5AesfilePath = getFilePath(foldersPath, "Dilithium5AES_Keys.txt"); String d5AesSigFilePath = getFilePath(foldersPath, "Dilithium5AES_Signatures.txt"); String d5AesVerifyFilePath = getFilePath(foldersPath, "Dilithium5AES_Verification.txt");
+        byte[] plaintext = new byte[2048];
+
+        for (int i = 0; i < 3; i++) {
+            // Creating KPGs for key pairs
+            KeyPairGenerator d2KPG = KeyPairGenerator.getInstance("DILITHIUM2"); d2KPG.initialize(DilithiumParameterSpec.dilithium2, new SecureRandom());
+            KeyPairGenerator d3KPG = KeyPairGenerator.getInstance("DILITHIUM3"); d3KPG.initialize(DilithiumParameterSpec.dilithium3, new SecureRandom());
+            KeyPairGenerator d5KPG = KeyPairGenerator.getInstance("DILITHIUM5"); d5KPG.initialize(DilithiumParameterSpec.dilithium5, new SecureRandom());
+            KeyPairGenerator d2AesKPG = KeyPairGenerator.getInstance("DILITHIUM2-AES"); d2AesKPG.initialize(DilithiumParameterSpec.dilithium2_aes, new SecureRandom());
+            KeyPairGenerator d3AesKPG = KeyPairGenerator.getInstance("DILITHIUM3-AES"); d3AesKPG.initialize(DilithiumParameterSpec.dilithium3_aes, new SecureRandom());
+            KeyPairGenerator d5AesKPG = KeyPairGenerator.getInstance("DILITHIUM5-AES"); d5AesKPG.initialize(DilithiumParameterSpec.dilithium5_aes, new SecureRandom());
+            // Creating key pairs
+            KeyPair d2KP = d2KPG.generateKeyPair(); KeyPair d3KP = d3KPG.generateKeyPair(); KeyPair d5KP = d5KPG.generateKeyPair();
+            KeyPair d2AesKP = d2AesKPG.generateKeyPair(); KeyPair d3AesKP = d3AesKPG.generateKeyPair(); KeyPair d5AesKP = d5AesKPG.generateKeyPair();
+            String d2keysString = getKeysAsString(d2KP); String d3keysString = getKeysAsString(d3KP); String d5keysString = getKeysAsString(d5KP);
+            String d2AeskeysString = getKeysAsString(d2AesKP); String d3AeskeysString = getKeysAsString(d3AesKP); String d5AeskeysString = getKeysAsString(d5AesKP);
+            saveDataToFile(d2keysString, d2filePath); saveDataToFile(d3keysString, d3filePath); saveDataToFile(d5keysString, d5filePath);
+            saveDataToFile(d2AeskeysString, d2AesfilePath); saveDataToFile(d3AeskeysString, d3AesfilePath); saveDataToFile(d5AeskeysString, d5AesfilePath);
+            // Creating signature instances
+            Signature d2SigInit = Signature.getInstance("DILITHIUM2"); Signature d3SigInit = Signature.getInstance("DILITHIUM3"); Signature d5SigInit = Signature.getInstance("DILITHIUM5");
+            Signature d2AesSigInit = Signature.getInstance("DILITHIUM2-AES"); Signature d3AesSigInit = Signature.getInstance("DILITHIUM3-AES"); Signature d5AesSigInit = Signature.getInstance("DILITHIUM5-AES");
+            // Creating signing instances
+            byte[] d2Sig = dilithiumSign(d2KP, plaintext, d2SigInit); byte[] d3Sig = dilithiumSign(d3KP, plaintext, d3SigInit); byte[] d5Sig = dilithiumSign(d5KP, plaintext, d5SigInit);
+            byte[] d2AesSig = dilithiumSign(d2AesKP, plaintext, d2AesSigInit); byte[] d3AesSig = dilithiumSign(d3AesKP, plaintext, d3AesSigInit); byte[] d5AesSig = dilithiumSign(d5AesKP, plaintext, d5AesSigInit);
+            String d2DecodedSignature = decodeSignature(d2Sig); String d3DecodedSignature = decodeSignature(d3Sig); String d5DecodedSignature = decodeSignature(d5Sig);
+            String d2AesDecodedSignature = decodeSignature(d2AesSig); String d3AesDecodedSignature = decodeSignature(d3AesSig); String d5AesDecodedSignature = decodeSignature(d5AesSig);
+            saveDataToFile(d2DecodedSignature, d2SigFilePath); saveDataToFile(d3DecodedSignature, d3SigFilePath); saveDataToFile(d5DecodedSignature, d5SigFilePath);
+            saveDataToFile(d2AesDecodedSignature, d2AesSigFilePath); saveDataToFile(d3AesDecodedSignature, d3AesSigFilePath); saveDataToFile(d5AesDecodedSignature, d5AesSigFilePath);
+            // Verifying signatures
+            Boolean d2Verify = dilithiumVerify(d2KP, d2Sig, plaintext, d2SigInit); Boolean d3Verify = dilithiumVerify(d3KP, d3Sig, plaintext, d3SigInit); Boolean d5Verify = dilithiumVerify(d5KP, d5Sig, plaintext, d5SigInit);
+            Boolean d2AesVerify = dilithiumVerify(d2AesKP, d2AesSig, plaintext, d2AesSigInit); Boolean d3AesVerify = dilithiumVerify(d3AesKP, d3AesSig, plaintext, d3AesSigInit); Boolean d5AesVerify = dilithiumVerify(d5AesKP, d5AesSig, plaintext, d5AesSigInit);
+            saveVerificationResult(d2Verify, d2VerifyFilePath); saveVerificationResult(d3Verify, d3VerifyFilePath); saveVerificationResult(d5Verify, d5VerifyFilePath);
+            saveVerificationResult(d2AesVerify, d2AesVerifyFilePath); saveVerificationResult(d3AesVerify, d3AesVerifyFilePath); saveVerificationResult(d5AesVerify, d5AesVerifyFilePath);
+        }
     }
 }

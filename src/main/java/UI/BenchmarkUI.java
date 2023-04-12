@@ -170,25 +170,25 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                 }
-                case "Picnic" -> {
-                    builder.include(Picnic.class.getSimpleName())
-                            .result("Picnic_Benchmarks.csv");
-                    Options options = builder.build();
+                case "PICNIC" -> {
                     try {
-                        new Runner(options).run();
-                    } catch (RunnerException ex) {
+                        Picnic.main(new String[0]);
+                    } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
+                    builder.include(Dilithium.class.getSimpleName())
+                            .result("Benchmark Results/Picnic Benchmarks/Picnic_Benchmarks.csv");
+                    Options options = builder.build();
                 }
                 case "CRYSTALS-Dilithium" -> {
-                    builder.include(Dilithium.class.getSimpleName())
-                            .result("Dilithium_Benchmarks.csv");
-                    Options options = builder.build();
                     try {
-                        new Runner(options).run();
-                    } catch (RunnerException ex) {
+                        Dilithium.main(new String[0]);
+                    } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
+                    builder.include(Dilithium.class.getSimpleName())
+                            .result("Benchmark Results/Dilithium Benchmarks/Dilithium_Benchmarks.csv");
+                    Options options = builder.build();
                 }
                 case "CRYSTALS-Kyber" -> {
                     builder.include(Kyber.class.getSimpleName())
@@ -223,25 +223,25 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                 }
-                case "Picnic" -> {
-                    builder2.include(Picnic.class.getSimpleName())
-                            .result("Picnic_Benchmarks.csv");
-                    Options options = builder2.build();
+                case "PICNIC" -> {
                     try {
-                        new Runner(options).run();
-                    } catch (RunnerException ex) {
+                        Picnic.main(new String[0]);
+                    } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
+                    builder.include(Picnic.class.getSimpleName())
+                            .result("Benchmark Results/Picnic Benchmarks/Picnic_Benchmarks.csv");
+                    Options options = builder.build();
                 }
                 case "CRYSTALS-Dilithium" -> {
-                    builder2.include(Dilithium.class.getSimpleName())
-                            .result("Dilithium_Benchmarks.csv");
-                    Options options = builder2.build();
                     try {
-                        new Runner(options).run();
-                    } catch (RunnerException ex) {
+                        Dilithium.main(new String[0]);
+                    } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
+                    builder.include(Dilithium.class.getSimpleName())
+                            .result("Benchmark Results/Dilithium Benchmarks/Dilithium_Benchmarks.csv");
+                    Options options = builder.build();
                 }
                 case "CRYSTALS-Kyber" -> {
                     builder2.include(Kyber.class.getSimpleName())
@@ -254,14 +254,14 @@ public class BenchmarkUI {
                     }
                 }
                 case "BIKE" -> {
-                    builder.include(BIKE.class.getSimpleName())
-                            .result("BIKE_Benchmarks.csv");
-                    Options options = builder.build();
                     try {
-                        new Runner(options).run();
-                    } catch (RunnerException ex) {
+                        BIKE.main(new String[0]);
+                    } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
+                    builder.include(BIKE.class.getSimpleName())
+                            .result("Benchmark Results/BIKE Benchmarks/BIKE_Benchmarks.csv");
+                    Options options = builder.build();
                 }
                 default -> throw new IllegalArgumentException("Invalid algorithm selected: " + algorithm2);
             }
@@ -284,7 +284,7 @@ public class BenchmarkUI {
         gbc.insets = new Insets(5, 0, 5, 0);
         panel.add(label, gbc);
         // Create combo boxes to select algorithms
-        String[] algorithms = {"Falcon", "Picnic", "CRYSTALS-Kyber", "CRYSTALS-Dilithium"};
+        String[] algorithms = {"BIKE", "Falcon", "Picnic", "CRYSTALS-Kyber", "CRYSTALS-Dilithium"};
         JComboBox<String> comboBox1 = new JComboBox<>(algorithms);
         Dimension preferredSize = new Dimension(200, 30);
         comboBox1.setPreferredSize(preferredSize);
@@ -358,25 +358,25 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                 }
-                case "Picnic" -> {
-                    builder.include(Picnic.class.getSimpleName())
-                            .result("Picnic_Benchmarks.csv");
-                    Options options = builder.build();
+                case "PICNIC" -> {
                     try {
-                        new Runner(options).run();
-                    } catch (RunnerException ex) {
+                        Picnic.main(new String[0]);
+                    } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
+                    builder.include(Picnic.class.getSimpleName())
+                            .result("Benchmark Results/Picnic Benchmarks/Picnic_Benchmarks.csv");
+                    Options options = builder.build();
                 }
                 case "CRYSTALS-Dilithium" -> {
-                    builder.include(Dilithium.class.getSimpleName())
-                            .result("Dilithium_Benchmarks.csv");
-                    Options options = builder.build();
                     try {
-                        new Runner(options).run();
-                    } catch (RunnerException ex) {
+                        Dilithium.main(new String[0]);
+                    } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
+                    builder.include(Dilithium.class.getSimpleName())
+                            .result("Benchmark Results/Dilithium Benchmarks/Dilithium_Benchmarks.csv");
+                    Options options = builder.build();
                 }
                 case "CRYSTALS-Kyber" -> {
                     builder.include(Kyber.class.getSimpleName())
@@ -387,6 +387,16 @@ public class BenchmarkUI {
                     } catch (RunnerException ex) {
                         throw new RuntimeException(ex);
                     }
+                }
+                case "BIKE" -> {
+                    try {
+                        BIKE.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(BIKE.class.getSimpleName())
+                            .result("Benchmark Results/BIKE Benchmarks/BIKE_Benchmarks.csv");
+                    Options options = builder.build();
                 }
                 default -> throw new IllegalArgumentException("Invalid algorithm selected: " + algorithm1);
             }

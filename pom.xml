@@ -18,7 +18,7 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
-            <version>173b22</version>
+            <version>1.73</version>
             <scope>system</scope>
             <systemPath>C:/Users/CavanP/IdeaProjects/Files/bcprov-jdk18on-173b22.jar</systemPath>
         </dependency>

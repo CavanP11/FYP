@@ -128,7 +128,7 @@ public class UI {
         postqButton.setBackground(new Color(100, 100, 100));
         postqButton.setPreferredSize(new Dimension(105, 25));
         // Creating the "Pre-Quantum" dropdown menu
-        JMenu preqButton = new JMenu("Post-Quantum");
+        JMenu preqButton = new JMenu("Pre-Quantum");
         preqButton.setForeground(Color.WHITE);
         preqButton.setFont(new Font("Arial", Font.PLAIN, 14));
         preqButton.setBackground(new Color(100, 100, 100));
@@ -153,6 +153,18 @@ public class UI {
         JMenuItem bike = new JMenuItem("BIKE");
         bike.setFont(new Font("Arial", Font.PLAIN, 14));
         postqButton.add(bike);
+        // Adding SHA256 to the dropdown menu
+        JMenuItem sha256 = new JMenuItem("SHA256");
+        sha256.setFont(new Font("Arial", Font.PLAIN, 14));
+        preqButton.add(sha256);
+        // Adding RSA to the dropdown menu
+        JMenuItem rsa = new JMenuItem("RSA");
+        rsa.setFont(new Font("Arial", Font.PLAIN, 14));
+        preqButton.add(rsa);
+        // Adding RSA to the dropdown menu
+        JMenuItem aesCTR = new JMenuItem("AES-CTR");
+        aesCTR.setFont(new Font("Arial", Font.PLAIN, 14));
+        preqButton.add(aesCTR);
         // Menubar
         JMenuBar menuBar = new JMenuBar();
         menuBar.setBackground(new Color(100, 100, 100));

@@ -8,6 +8,12 @@ import org.bouncycastle.jcajce.spec.KEMGenerateSpec;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec;
 import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.results.format.ResultFormatType;
+import org.openjdk.jmh.runner.Runner;
+import org.openjdk.jmh.runner.RunnerException;
+import org.openjdk.jmh.runner.options.Options;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
+
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.spec.SecretKeySpec;
@@ -31,6 +37,9 @@ public class Kyber {
     private static KeyPair k512KP; private static KeyPair k768KP; private static KeyPair k1024KP;
     private static KeyPair k512AesKP; private static KeyPair k768AesKP; private static KeyPair k1024AesKP;
 
+    private static KeyPairGenerator k512KPG; private static KeyPairGenerator k768KPG; private static KeyPairGenerator k1024KPG;
+    private static KeyPairGenerator k512AesKPG; private static KeyPairGenerator k768AesKPG; private static KeyPairGenerator k1024AesKPG;
+
     private static Cipher k512CipherWrap; private static Cipher k512CipherUnwrap;
     private static Cipher k768CipherWrap; private static Cipher k768CipherUnwrap;
     private static Cipher k1024CipherWrap; private static Cipher k1024CipherUnwrap;
@@ -49,6 +58,13 @@ public class Kyber {
     @Setup
     public void setup() throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
+        // Creating KPGs for KPs
+        k512KPG = KeyPairGenerator.getInstance(KyberParameterSpec.kyber512.getName()); k512KPG.initialize(KyberParameterSpec.kyber512, new SecureRandom());
+        k768KPG = KeyPairGenerator.getInstance(KyberParameterSpec.kyber768.getName()); k768KPG.initialize(KyberParameterSpec.kyber768, new SecureRandom());
+        k1024KPG = KeyPairGenerator.getInstance(KyberParameterSpec.kyber1024.getName()); k1024KPG.initialize(KyberParameterSpec.kyber1024, new SecureRandom());
+        k512AesKPG = KeyPairGenerator.getInstance(KyberParameterSpec.kyber512_aes.getName()); k512AesKPG.initialize(KyberParameterSpec.kyber512_aes, new SecureRandom());
+        k768AesKPG = KeyPairGenerator.getInstance(KyberParameterSpec.kyber768_aes.getName()); k768AesKPG.initialize(KyberParameterSpec.kyber768_aes, new SecureRandom());
+        k1024AesKPG = KeyPairGenerator.getInstance(KyberParameterSpec.kyber1024_aes.getName()); k1024AesKPG.initialize(KyberParameterSpec.kyber1024_aes, new SecureRandom());
         // Generate KeyPairs from benchmark methods. *NB -> These runs are not benchmarked, so performance not impacted.
         k512KP = k512KeyGen(); k768KP = k768KeyGen(); k1024KP = k1024KeyGen();
         k512AesKP = k512AesKeyGen(); k768AesKP = k768AesKeyGen(); k1024AesKP = k1024AesKeyGen();
@@ -73,10 +89,8 @@ public class Kyber {
     // * Section 6: Kyber 512 * \\
     // ************************ \\
     @Benchmark
-    public static KeyPair k512KeyGen() throws Exception {
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance(KyberParameterSpec.kyber512.getName());
-        kpg.initialize(KyberParameterSpec.kyber512, new SecureRandom());
-        return kpg.generateKeyPair();
+    public static KeyPair k512KeyGen() {
+        return k512KPG.generateKeyPair();
     }
 
     @Benchmark
@@ -104,10 +118,8 @@ public class Kyber {
     // * Section 7: Kyber 768 * \\
     // ************************ \\
     @Benchmark
-    public static KeyPair k768KeyGen() throws Exception {
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance(KyberParameterSpec.kyber768.getName());
-        kpg.initialize(KyberParameterSpec.kyber768, new SecureRandom());
-        return kpg.generateKeyPair();
+    public static KeyPair k768KeyGen() {
+        return k768KPG.generateKeyPair();
     }
 
     @Benchmark
@@ -135,10 +147,8 @@ public class Kyber {
     // * Section 8: Kyber 1024 * \\
     // ************************* \\
     @Benchmark
-    public static KeyPair k1024KeyGen() throws Exception {
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance(KyberParameterSpec.kyber1024.getName());
-        kpg.initialize(KyberParameterSpec.kyber1024, new SecureRandom());
-        return kpg.generateKeyPair();
+    public static KeyPair k1024KeyGen() {
+        return k1024KPG.generateKeyPair();
     }
 
     @Benchmark
@@ -166,10 +176,8 @@ public class Kyber {
     // * Section 9: Kyber 512 AES * \\
     // **************************** \\
     @Benchmark
-    public static KeyPair k512AesKeyGen() throws Exception {
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance(KyberParameterSpec.kyber512_aes.getName());
-        kpg.initialize(KyberParameterSpec.kyber512_aes, new SecureRandom());
-        return kpg.generateKeyPair();
+    public static KeyPair k512AesKeyGen() {
+        return k512AesKPG.generateKeyPair();
     }
 
     @Benchmark
@@ -197,10 +205,8 @@ public class Kyber {
     // * Section 10: Kyber 768 AES * \\
     // ***************************** \\
     @Benchmark
-    public static KeyPair k768AesKeyGen() throws Exception {
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance(KyberParameterSpec.kyber768_aes.getName());
-        kpg.initialize(KyberParameterSpec.kyber768_aes, new SecureRandom());
-        return kpg.generateKeyPair();
+    public static KeyPair k768AesKeyGen() {
+        return k768AesKPG.generateKeyPair();
     }
 
     @Benchmark
@@ -228,10 +234,8 @@ public class Kyber {
     // * Section 11: Kyber 1024 AES * \\
     // ****************************** \\
     @Benchmark
-    public static KeyPair k1024AesKeyGen() throws Exception {
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance(KyberParameterSpec.kyber1024_aes.getName());
-        kpg.initialize(KyberParameterSpec.kyber1024_aes, new SecureRandom());
-        return kpg.generateKeyPair();
+    public static KeyPair k1024AesKeyGen() {
+        return k1024AesKPG.generateKeyPair();
     }
 
     @Benchmark
@@ -254,5 +258,14 @@ public class Kyber {
     public static Key k1024AesUnwrapKey() throws Exception {
         // Unwrap the keys (Decrypt the keys with AES)
         return k1024AesCipherUnwrap.unwrap(k1024AesWB, "AES", Cipher.SECRET_KEY);
+    }
+
+    public static void main(String[] args) throws RunnerException {
+        Options opt = new OptionsBuilder()
+                .include(Kyber.class.getSimpleName())
+                .resultFormat(ResultFormatType.CSV)
+                .result("BIKE.csv")
+                .build();
+        new Runner(opt).run();
     }
 }
