@@ -16,7 +16,7 @@
 2. CRYSTALS-Kyber
 3. Falcon
 4. Picnic
-5. SIKE
+5. BIKE
 6. SPHINCS+
 
 ## Pre-Quantum Algorithms
