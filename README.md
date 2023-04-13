@@ -18,6 +18,7 @@
 4. Picnic
 5. BIKE
 6. SPHINCS+
+7. Rainbow
 
 ## Pre-Quantum Algorithms
 
