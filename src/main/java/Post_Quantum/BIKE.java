@@ -6,11 +6,6 @@ import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.BIKEParameterSpec;
 import org.bouncycastle.util.encoders.Hex;
 import org.openjdk.jmh.annotations.*;
-import org.openjdk.jmh.results.format.ResultFormatType;
-import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.options.Options;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
-
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
@@ -51,22 +46,22 @@ public class BIKE {
         byte[] keyBytes = Hex.decode("000102030405060708090a0b0c0d0e0f");
         key = new SecretKeySpec(keyBytes, "AES");
 
-        bike128KPG = KeyPairGenerator.getInstance("BIKE"); bike128KPG.initialize(BIKEParameterSpec.bike128, new SecureRandom());
-        bike192KPG = KeyPairGenerator.getInstance("BIKE"); bike192KPG.initialize(BIKEParameterSpec.bike192, new SecureRandom());
-        bike256KPG = KeyPairGenerator.getInstance("BIKE"); bike256KPG.initialize(BIKEParameterSpec.bike256, new SecureRandom());
+        bike128KPG = KeyPairGenerator.getInstance("BIKE", "BCPQC"); bike128KPG.initialize(BIKEParameterSpec.bike128, new SecureRandom());
+        bike192KPG = KeyPairGenerator.getInstance("BIKE", "BCPQC"); bike192KPG.initialize(BIKEParameterSpec.bike192, new SecureRandom());
+        bike256KPG = KeyPairGenerator.getInstance("BIKE", "BCPQC"); bike256KPG.initialize(BIKEParameterSpec.bike256, new SecureRandom());
 
         KeyPair bike128KP = bike128KeyGenerator();
         KeyPair bike192KP = bike192KeyGenerator();
         KeyPair bike256KP = bike256KeyGenerator();
 
-        bike128CipherWrap = Cipher.getInstance("BIKE"); bike128CipherWrap.init(Cipher.WRAP_MODE, bike128KP.getPublic());
-        bike192CipherWrap = Cipher.getInstance("BIKE"); bike192CipherWrap.init(Cipher.WRAP_MODE, bike192KP.getPublic());
-        bike256CipherWrap = Cipher.getInstance("BIKE"); bike256CipherWrap.init(Cipher.WRAP_MODE, bike256KP.getPublic());
+        bike128CipherWrap = Cipher.getInstance("BIKE", "BCPQC"); bike128CipherWrap.init(Cipher.WRAP_MODE, bike128KP.getPublic());
+        bike192CipherWrap = Cipher.getInstance("BIKE", "BCPQC"); bike192CipherWrap.init(Cipher.WRAP_MODE, bike192KP.getPublic());
+        bike256CipherWrap = Cipher.getInstance("BIKE", "BCPQC"); bike256CipherWrap.init(Cipher.WRAP_MODE, bike256KP.getPublic());
         bike128WB = bike128WrapKey(); bike192WB = bike192WrapKey(); bike256WB = bike256WrapKey();
 
-        bike128CipherUnwrap = Cipher.getInstance("BIKE"); bike128CipherUnwrap.init(Cipher.UNWRAP_MODE, bike128KP.getPrivate());
-        bike192CipherUnwrap = Cipher.getInstance("BIKE"); bike192CipherUnwrap.init(Cipher.UNWRAP_MODE, bike192KP.getPrivate());
-        bike256CipherUnwrap = Cipher.getInstance("BIKE"); bike256CipherUnwrap.init(Cipher.UNWRAP_MODE, bike256KP.getPrivate());
+        bike128CipherUnwrap = Cipher.getInstance("BIKE", "BCPQC"); bike128CipherUnwrap.init(Cipher.UNWRAP_MODE, bike128KP.getPrivate());
+        bike192CipherUnwrap = Cipher.getInstance("BIKE", "BCPQC"); bike192CipherUnwrap.init(Cipher.UNWRAP_MODE, bike192KP.getPrivate());
+        bike256CipherUnwrap = Cipher.getInstance("BIKE", "BCPQC"); bike256CipherUnwrap.init(Cipher.UNWRAP_MODE, bike256KP.getPrivate());
     }
     // ************************ \\
     // * Section 5: BIKE 128 * \\
@@ -122,12 +117,24 @@ public class BIKE {
     // ************************************************************* \\
     // * Section 8: Printing Out Keys, Signatures and Verification * \\
     // ************************************************************* \\
+    public static byte[] bikeWrapKey(KeyPair kp, Key key) throws Exception {
+        Cipher cipher = Cipher.getInstance("BIKE", "BCPQC");
+        cipher.init(Cipher.WRAP_MODE, kp.getPublic());
+        return cipher.wrap(key);
+    }
+
+    public static Key bikeUnwrapKey(KeyPair kp, byte[] wb) throws Exception {
+        Cipher cipher = Cipher.getInstance("BIKE", "BCPQC");
+        cipher.init(Cipher.UNWRAP_MODE, kp.getPrivate());
+        return cipher.unwrap(wb, "AES", Cipher.SECRET_KEY);
+    }
+
     private static String getKeysAsString(KeyPair keyPair) {
         PublicKey publicKey = keyPair.getPublic();
         PrivateKey privateKey = keyPair.getPrivate();
 
-        return "Bike Public Key: " + Base64.getEncoder().encodeToString(publicKey.getEncoded()) + "\n" +
-                "Bike Private Key: " + Base64.getEncoder().encodeToString(privateKey.getEncoded()) + "\n";
+        return "Bike Public Key:\n" + Base64.getEncoder().encodeToString(publicKey.getEncoded()) + "\n\n" +
+                "Bike Private Key:\n" + Base64.getEncoder().encodeToString(privateKey.getEncoded()) + "\n\n";
     }
 
     public static String byteArrayToHexString(byte[] byteArray) {
@@ -136,18 +143,6 @@ public class BIKE {
             hexString.append(String.format("%02x", b));
         }
         return hexString.toString();
-    }
-
-    public static byte[] bikeWrapKey(KeyPair kp, Key key) throws Exception {
-        Cipher cipher = Cipher.getInstance("BIKE");
-        cipher.init(Cipher.WRAP_MODE, kp.getPublic());
-        return cipher.wrap(key);
-    }
-
-    public static Key bikeUnwrapKey(KeyPair kp, byte[] wb) throws Exception {
-        Cipher cipher = Cipher.getInstance("BIKE");
-        cipher.init(Cipher.UNWRAP_MODE, kp.getPrivate());
-        return cipher.unwrap(wb, "AES", Cipher.SECRET_KEY);
     }
 
     private static void saveDataToFile(String data, String filePath) {
@@ -177,15 +172,16 @@ public class BIKE {
     public static void main(String[] args) throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
         // Creating files / folders
-        String foldersPath = "Benchmark Results/BIKE Benchmarks/";
-        String file128Path = getFilePath(foldersPath, "BIKE128_Keys.txt"); String file192Path = getFilePath(foldersPath, "BIKE192_Keys.txt"); String file256Path = getFilePath(foldersPath, "BIKE256_Keys.txt");
-        String wrapped128FilePath = getFilePath(foldersPath, "BIKE128_Wrapped.txt"); String wrapped192FilePath = getFilePath(foldersPath, "BIKE192_Wrapped.txt"); String wrapped256FilePath = getFilePath(foldersPath, "BIKE256_Wrapped.txt");
-        String unwrap128FilePath = getFilePath(foldersPath, "BIKE128_Unwrapped.txt"); String unwrap192FilePath = getFilePath(foldersPath, "BIKE192_Unwrapped.txt"); String unwrap256FilePath = getFilePath(foldersPath, "BIKE256_Unwrapped.txt");
+        String foldersPath = "Benchmark Results/Post-Quantum/BIKE Benchmarks/";
+        String keyFilePath = getFilePath(foldersPath, "BIKE-128/OriginalKey.txt");
+        String file128Path = getFilePath(foldersPath, "BIKE-128/Keys.txt"); String wrapped128FilePath = getFilePath(foldersPath, "BIKE-128/WrappedKey.txt"); String unwrap128FilePath = getFilePath(foldersPath, "BIKE-128/UnwrappedKey.txt");
+        String file192Path = getFilePath(foldersPath, "BIKE-192/Keys.txt"); String wrapped192FilePath = getFilePath(foldersPath, "BIKE-192/WrappedKey.txt");  String unwrap192FilePath = getFilePath(foldersPath, "BIKE-192/UnwrappedKey.txt");
+        String file256Path = getFilePath(foldersPath, "BIKE-256/Keys.txt"); String wrapped256FilePath = getFilePath(foldersPath, "BIKE-256/WrappedKey.txt"); String unwrap256FilePath = getFilePath(foldersPath, "BIKE-256/UnwrappedKey.txt");
         byte[] keyBytes = Hex.decode("000102030405060708090a0b0c0d0e0f");
         Key key = new SecretKeySpec(keyBytes, "AES");
         for (int i = 0; i < 3; i++) {
             // Creating KPGs for key pairs
-            KeyPairGenerator kpg128 = KeyPairGenerator.getInstance("BIKE"); KeyPairGenerator kpg192 = KeyPairGenerator.getInstance("BIKE"); KeyPairGenerator kpg256 = KeyPairGenerator.getInstance("BIKE");
+            KeyPairGenerator kpg128 = KeyPairGenerator.getInstance("BIKE", "BCPQC"); KeyPairGenerator kpg192 = KeyPairGenerator.getInstance("BIKE","BCPQC"); KeyPairGenerator kpg256 = KeyPairGenerator.getInstance("BIKE", "BCPQC");
             kpg128.initialize(BIKEParameterSpec.bike128, new SecureRandom()); kpg192.initialize(BIKEParameterSpec.bike192, new SecureRandom()); kpg256.initialize(BIKEParameterSpec.bike256, new SecureRandom());
             // Creating key pairs
             KeyPair kp128 = kpg128.generateKeyPair(); KeyPair kp192 = kpg192.generateKeyPair(); KeyPair kp256 = kpg256.generateKeyPair();

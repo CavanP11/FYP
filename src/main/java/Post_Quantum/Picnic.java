@@ -45,7 +45,7 @@ public class Picnic {
     // ************************* \\
     @Param({"256", "512", "1024", "2048"})
     static int plaintextSize;
-    @Param({"Picnic", "SHA3-512WITHPicnic", "SHA512WITHPicnic", "SHAKE256WITHPICNIC"})
+    @Param({"Picnic", "SHA3-512WITHPICNIC", "SHA512WITHPICNIC", "SHAKE256WITHPICNIC"})
     static String algorithm;
     // ******************** \\
     // * Section 5: Setup * \\
@@ -56,10 +56,10 @@ public class Picnic {
         SecureRandom random = new SecureRandom();
         plaintext = new byte[plaintextSize];
         // Creating signature of the current algorithm parameter
-        l1fsSig = Signature.getInstance(algorithm);
+        l1fsSig = Signature.getInstance(algorithm, "BCPQC");
         l3fsSig = l1fsSig; l5fsSig = l1fsSig; l1fullSig = l1fsSig; l3fullSig = l1fsSig; l5fullSig = l1fsSig;
         // Creating KPG instances
-        l1fsKPG = KeyPairGenerator.getInstance("Picnic");
+        l1fsKPG = KeyPairGenerator.getInstance("Picnic", "BCPQC");
         l3fsKPG = l1fsKPG; l5fsKPG = l1fsKPG; l1fullKPG = l1fsKPG; l3fullKPG = l1fsKPG; l5fullKPG = l1fsKPG;
         // Initializing KPG with Picnic Parameter Specs
         l1fsKPG.initialize(PicnicParameterSpec.picnicl1fs, random); l3fsKPG.initialize(PicnicParameterSpec.picnicl3fs, random); l5fsKPG.initialize(PicnicParameterSpec.picnicl5fs, random);
@@ -195,70 +195,60 @@ public class Picnic {
         l5fullSig.update(plaintext, 0, plaintext.length);
         return l5fullSig.verify(l5fullSignature);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // ************************************************************** \\
+    // * Section 12: Printing Out Keys, Signatures and Verification * \\
+    // ************************************************************** \\
     public static byte[] picnicSign(KeyPair kp, byte[] plaintext) throws Exception {
-        Signature signature = Signature.getInstance("PICNIC");
+        Signature signature = Signature.getInstance("PICNIC", "BCPQC");
         signature.initSign(kp.getPrivate(), new SecureRandom());
         signature.update(plaintext, 0, plaintext.length);
         return signature.sign();
     }
 
     public static boolean picnicVerify(KeyPair kp, byte[] sig, byte[] plaintext) throws Exception {
-        Signature signature = Signature.getInstance("PICNIC");
+        Signature signature = Signature.getInstance("PICNIC", "BCPQC");
         signature.initVerify(kp.getPublic());
         signature.update(plaintext, 0, plaintext.length);
         return signature.verify(sig);
     }
 
     public static byte[] sha3Sign(KeyPair kp, byte[] plaintext) throws Exception {
-        Signature signature = Signature.getInstance("SHA3-512WITHPICNIC");
+        Signature signature = Signature.getInstance("SHA3-512WITHPICNIC", "BCPQC");
         signature.initSign(kp.getPrivate(), new SecureRandom());
         signature.update(plaintext, 0, plaintext.length);
         return signature.sign();
     }
 
     public static boolean sha3Verify(KeyPair kp, byte[] sig, byte[] plaintext) throws Exception {
-        Signature signature = Signature.getInstance("SHA3-512WITHPICNIC");
+        Signature signature = Signature.getInstance("SHA3-512WITHPICNIC", "BCPQC");
         signature.initVerify(kp.getPublic());
         signature.update(plaintext, 0, plaintext.length);
         return signature.verify(sig);
     }
 
     public static byte[] sha512Sign(KeyPair kp, byte[] plaintext) throws Exception {
-        Signature signature = Signature.getInstance("SHA512WITHPICNIC");
+        Signature signature = Signature.getInstance("SHA512WITHPICNIC", "BCPQC");
         signature.initSign(kp.getPrivate(), new SecureRandom());
         signature.update(plaintext, 0, plaintext.length);
         return signature.sign();
     }
 
     public static boolean sha512Verify(KeyPair kp, byte[] sig, byte[] plaintext) throws Exception {
-        Signature signature = Signature.getInstance("SHA512WITHPICNIC");
+        Signature signature = Signature.getInstance("SHA512WITHPICNIC", "BCPQC");
         signature.initVerify(kp.getPublic());
         signature.update(plaintext, 0, plaintext.length);
         return signature.verify(sig);
     }
 
     public static byte[] shake256Sign(KeyPair kp, byte[] plaintext) throws Exception {
-        Signature signature = Signature.getInstance("SHAKE256WITHPICNIC");
+        Signature signature = Signature.getInstance("SHAKE256WITHPICNIC", "BCPQC");
         signature.initSign(kp.getPrivate(), new SecureRandom());
         signature.update(plaintext, 0, plaintext.length);
         return signature.sign();
     }
 
     public static boolean shake256Verify(KeyPair kp, byte[] sig, byte[] plaintext) throws Exception {
-        Signature signature = Signature.getInstance("SHAKE256WITHPICNIC");
+        Signature signature = Signature.getInstance("SHAKE256WITHPICNIC", "BCPQC");
         signature.initVerify(kp.getPublic());
         signature.update(plaintext, 0, plaintext.length);
         return signature.verify(sig);
@@ -303,52 +293,51 @@ public class Picnic {
     public static void main(String[] args) throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
         // Creating files / folders
-        String foldersPath = "Benchmark Results/Picnic Benchmarks/";
+        String foldersPath = "Benchmark Results/Post-Quantum/Picnic Benchmarks/";
         // Key file locations *NB -> All keys for different modes are the same.
-        String l1fsFilePath = getFilePath(foldersPath, "PicnicL1FS_Keys.txt");
-        String l3fsFilePath = getFilePath(foldersPath, "PicnicL3FS_Keys.txt");
-        String l5fsFilePath = getFilePath(foldersPath, "PicnicL5FS_Keys.txt");
-        String l1fullFilePath = getFilePath(foldersPath, "PicnicL1FULL_Keys.txt");
-        String l3fullFilePath = getFilePath(foldersPath, "PicnicL3FULL_Keys.txt");
-        String l5fullFilePath = getFilePath(foldersPath, "PicnicL5FULL_Keys.txt");
+        String l1fsFilePath = getFilePath(foldersPath, "L1FS_Keys.txt");
+        String l3fsFilePath = getFilePath(foldersPath, "L3FS_Keys.txt");
+        String l5fsFilePath = getFilePath(foldersPath, "L5FS_Keys.txt");
+        String l1fullFilePath = getFilePath(foldersPath, "L1FULL_Keys.txt");
+        String l3fullFilePath = getFilePath(foldersPath, "L3FULL_Keys.txt");
+        String l5fullFilePath = getFilePath(foldersPath, "L5FULL_Keys.txt");
         // Picnic file locations
-        String l1fsSigFilePicnic = getFilePath(foldersPath, "PICNIC/PicnicL1FS_PICNIC_Signatures.txt"); String l1fsVerifyFilePicnic = getFilePath(foldersPath, "PICNIC/PicnicL1FS_PICNIC_Verification.txt");
-        String l3fsSigFilePicnic = getFilePath(foldersPath, "PICNIC/PicnicL3FS_PICNIC_Signatures.txt"); String l3fsVerifyFilePicnic = getFilePath(foldersPath, "PICNIC/PicnicL3FS_PICNIC_Verification.txt");
-        String l5fsSigFilePicnic = getFilePath(foldersPath, "PICNIC/PicnicL5FS_PICNIC_Signatures.txt"); String l5fsVerifyFilePicnic = getFilePath(foldersPath, "PICNIC/PicnicL5FS_PICNIC_Verification.txt");
-        String l1fullSigFilePicnic = getFilePath(foldersPath, "PICNIC/PicnicL1FULL_PICNIC_Signatures.txt"); String l1fullVerifyFilePicnic = getFilePath(foldersPath, "PICNIC/PicnicL1FULL_PICNIC_Verification.txt");
-        String l3fullSigFilePicnic = getFilePath(foldersPath, "PICNIC/PicnicL3FULL_PICNIC_Signatures.txt"); String l3fullVerifyFilePicnic = getFilePath(foldersPath, "PICNIC/PicnicL3FULL_PICNIC_Verification.txt");
-        String l5fullSigFilePicnic = getFilePath(foldersPath, "PICNIC/PicnicL5FULL_PICNIC_Signatures.txt"); String l5fullVerifyFilePicnic = getFilePath(foldersPath, "PICNIC/PicnicL5FULL_PICNIC_Verification.txt");
+        String l1fsSigFilePicnic = getFilePath(foldersPath, "PICNIC/Picnic-L1FS/Signatures.txt"); String l1fsVerifyFilePicnic = getFilePath(foldersPath, "PICNIC/Picnic-L1FS/VerifySignatures.txt");
+        String l3fsSigFilePicnic = getFilePath(foldersPath, "PICNIC/Picnic-L3FS/Signatures.txt"); String l3fsVerifyFilePicnic = getFilePath(foldersPath, "PICNIC/Picnic-L3FS/VerifySignatures.txt");
+        String l5fsSigFilePicnic = getFilePath(foldersPath, "PICNIC/Picnic-L5FS/Signatures.txt"); String l5fsVerifyFilePicnic = getFilePath(foldersPath, "PICNIC/Picnic-L5FS/VerifySignatures.txt");
+        String l1fullSigFilePicnic = getFilePath(foldersPath, "PICNIC/Picnic-L1FULL/Signatures.txt"); String l1fullVerifyFilePicnic = getFilePath(foldersPath, "PICNIC/Picnic-L1FULL/VerifySignatures.txt");
+        String l3fullSigFilePicnic = getFilePath(foldersPath, "PICNIC/Picnic-L3FULL/Signatures.txt"); String l3fullVerifyFilePicnic = getFilePath(foldersPath, "PICNIC/Picnic-L3FULL/VerifySignatures.txt");
+        String l5fullSigFilePicnic = getFilePath(foldersPath, "PICNIC/Picnic-L5FULL/Signatures.txt"); String l5fullVerifyFilePicnic = getFilePath(foldersPath, "PICNIC/Picnic-L5FULL/VerifySignatures.txt");
         // SHA-3 file locations
-        String l1fsSigFileSha3 = getFilePath(foldersPath, "SHA3/PicnicL1FS_SHA3-512WITHPICNIC_Signatures.txt"); String l1fsVerifyFileSha3 = getFilePath(foldersPath, "SHA3/PicnicL1FS_SHA3-512WITHPICNIC_Verification.txt");
-        String l3fsSigFileSha3 = getFilePath(foldersPath, "SHA3/PicnicL3FS_SHA3-512WITHPICNIC_Signatures.txt"); String l3fsVerifyFileSha3 = getFilePath(foldersPath, "SHA3/PicnicL3FS_SHA3-512WITHPICNIC_Verification.txt");
-        String l5fsSigFileSha3 = getFilePath(foldersPath, "SHA3/PicnicL5FS_SHA3-512WITHPICNIC_Signatures.txt"); String l5fsVerifyFileSha3 = getFilePath(foldersPath, "SHA3/PicnicL5FS_SHA3-512WITHPICNIC_Verification.txt");
-        String l1fullSigFileSha3 = getFilePath(foldersPath, "SHA3/PicnicL1FULL_SHA3-512WITHPICNIC_Signatures.txt"); String l1fullVerifyFileSha3 = getFilePath(foldersPath, "SHA3/PicnicL1FULL_SHA3-512WITHPICNIC_Verification.txt");
-        String l3fullSigFileSha3 = getFilePath(foldersPath, "SHA3/PicnicL3FULL_SHA3-512WITHPICNIC_Signatures.txt"); String l3fullVerifyFileSha3 = getFilePath(foldersPath, "SHA3/PicnicL3FULL_SHA3-512WITHPICNIC_Verification.txt");
-        String l5fullSigFileSha3 = getFilePath(foldersPath, "SHA3/PicnicL5FULL_SHA3-512WITHPICNIC_Signatures.txt"); String l5fullVerifyFileSha3 = getFilePath(foldersPath, "SHA3/PicnicL5FULL_SHA3-512WITHPICNIC_Verification.txt");
+        String l1fsSigFileSha3 = getFilePath(foldersPath, "SHA3-512-WITH-PICNIC/Picnic-L1FS/Signatures.txt"); String l1fsVerifyFileSha3 = getFilePath(foldersPath, "SHA3-512-WITH-PICNIC/Picnic-L1FS/VerifySignatures.txt");
+        String l3fsSigFileSha3 = getFilePath(foldersPath, "SHA3-512-WITH-PICNIC/Picnic-L3FS/Signatures.txt"); String l3fsVerifyFileSha3 = getFilePath(foldersPath, "SHA3-512-WITH-PICNIC/Picnic-L3FS/VerifySignatures.txt");
+        String l5fsSigFileSha3 = getFilePath(foldersPath, "SHA3-512-WITH-PICNIC/Picnic-L5FS/Signatures.txt"); String l5fsVerifyFileSha3 = getFilePath(foldersPath, "SHA3-512-WITH-PICNIC/Picnic-L5FS/VerifySignatures.txt");
+        String l1fullSigFileSha3 = getFilePath(foldersPath, "SHA3-512-WITH-PICNIC/Picnic-L1FULL/Signatures.txt"); String l1fullVerifyFileSha3 = getFilePath(foldersPath, "SHA3-512-WITH-PICNIC/Picnic-L1FULL/VerifySignatures.txt");
+        String l3fullSigFileSha3 = getFilePath(foldersPath, "SHA3-512-WITH-PICNIC/Picnic-L3FULL/Signatures.txt"); String l3fullVerifyFileSha3 = getFilePath(foldersPath, "SHA3-512-WITH-PICNIC/Picnic-L3FULL/VerifySignatures.txt");
+        String l5fullSigFileSha3 = getFilePath(foldersPath, "SHA3-512-WITH-PICNIC/Picnic-L5FULL/Signatures.txt"); String l5fullVerifyFileSha3 = getFilePath(foldersPath, "SHA3-512-WITH-PICNIC/Picnic-L5FULL/VerifySignatures.txt");
         // SHA-512 file locations
-        String l1fsSigFileSha512 = getFilePath(foldersPath, "SHA512/PicnicL1FS_SHA512WITHPICNIC_Signatures.txt"); String l1fsVerifyFileSha512 = getFilePath(foldersPath, "SHA512/PicnicL1FS_SHA512WITHPICNIC_Verification.txt");
-        String l3fsSigFileSha512 = getFilePath(foldersPath, "SHA512/PicnicL3FS_SHA512WITHPICNIC_Signatures.txt"); String l3fsVerifyFileSha512 = getFilePath(foldersPath, "SHA512/PicnicL3FS_SHA512WITHPICNIC_Verification.txt");
-        String l5fsSigFileSha512 = getFilePath(foldersPath, "SHA512/PicnicL5FS_SHA512WITHPICNIC_Signatures.txt"); String l5fsVerifyFileSha512 = getFilePath(foldersPath, "SHA512/PicnicL5FS_SHA512WITHPICNIC_Verification.txt");
-        String l1fullSigFileSha512 = getFilePath(foldersPath, "SHA512/PicnicL1FULL_SHA512WITHPICNIC_Signatures.txt"); String l1fullVerifyFileSha512 = getFilePath(foldersPath, "SHA512/PicnicL1FULL_SHA512WITHPICNIC_Verification.txt");
-        String l3fullSigFileSha512 = getFilePath(foldersPath, "SHA512/PicnicL3FULL_SHA512WITHPICNIC_Signatures.txt"); String l3fullVerifyFileSha512 = getFilePath(foldersPath, "SHA512/PicnicL3FULL_SHA512WITHPICNIC_Verification.txt");
-        String l5fullSigFileSha512 = getFilePath(foldersPath, "SHA512/PicnicL5FULL_SHA512WITHPICNIC_Signatures.txt"); String l5fullVerifyFileSha512 = getFilePath(foldersPath, "SHA512/PicnicL5FULL_SHA512WITHPICNIC_Verification.txt");
+        String l1fsSigFileSha512 = getFilePath(foldersPath, "SHA-512-WITH-PICNIC/Picnic-L1FS/Signatures.txt"); String l1fsVerifyFileSha512 = getFilePath(foldersPath, "SHA-512-WITH-PICNIC/Picnic-L1FS/VerifySignatures.txt");
+        String l3fsSigFileSha512 = getFilePath(foldersPath, "SHA-512-WITH-PICNIC/Picnic-L3FS/Signatures.txt"); String l3fsVerifyFileSha512 = getFilePath(foldersPath, "SHA-512-WITH-PICNIC/Picnic-L3FS/VerifySignatures.txt");
+        String l5fsSigFileSha512 = getFilePath(foldersPath, "SHA-512-WITH-PICNIC/Picnic-L5FS/Signatures.txt"); String l5fsVerifyFileSha512 = getFilePath(foldersPath, "SHA-512-WITH-PICNIC/Picnic-L5FS/VerifySignatures.txt");
+        String l1fullSigFileSha512 = getFilePath(foldersPath, "SHA-512-WITH-PICNIC/Picnic-L1FULL/Signatures.txt"); String l1fullVerifyFileSha512 = getFilePath(foldersPath, "SHA-512-WITH-PICNIC/Picnic-L1FULL/VerifySignatures.txt");
+        String l3fullSigFileSha512 = getFilePath(foldersPath, "SHA-512-WITH-PICNIC/Picnic-L3FULL/Signatures.txt"); String l3fullVerifyFileSha512 = getFilePath(foldersPath, "SHA-512-WITH-PICNIC/Picnic-L3FULL/VerifySignatures.txt");
+        String l5fullSigFileSha512 = getFilePath(foldersPath, "SHA-512-WITH-PICNIC/Picnic-L5FULL/Signatures.txt"); String l5fullVerifyFileSha512 = getFilePath(foldersPath, "SHA-512-WITH-PICNIC/Picnic-L5FULL/VerifySignatures.txt");
         // SHAKE-256 file locations
-        String l1fsSigFileShake256 = getFilePath(foldersPath, "SHAKE256/PicnicL1FS_SHAKE256WITHPICNIC_Signatures.txt"); String l1fsVerifyFileShake256 = getFilePath(foldersPath, "SHAKE256/PicnicL1FS_SHAKE256WITHPICNIC_Verification.txt");
-        String l3fsSigFileShake256 = getFilePath(foldersPath, "SHAKE256/PicnicL3FS_SHAKE256WITHPICNIC_Signatures.txt"); String l3fsVerifyFileShake256 = getFilePath(foldersPath, "SHAKE256/PicnicL3FS_SHAKE256WITHPICNIC_Verification.txt");
-        String l5fsSigFileShake256 = getFilePath(foldersPath, "SHAKE256/PicnicL5FS_SHAKE256WITHPICNIC_Signatures.txt"); String l5fsVerifyFileShake256 = getFilePath(foldersPath, "SHAKE256/PicnicL5FS_SHAKE256WITHPICNIC_Verification.txt");
-        String l1fullSigFileShake256 = getFilePath(foldersPath, "SHAKE256/PicnicL1FULL_SHAKE256WITHPICNIC_Signatures.txt"); String l1fullVerifyFileShake256 = getFilePath(foldersPath, "SHAKE256/PicnicL1FULL_SHAKE256WITHPICNIC_Verification.txt");
-        String l3fullSigFileShake256 = getFilePath(foldersPath, "SHAKE256/PicnicL3FULL_SHAKE256WITHPICNIC_Signatures.txt"); String l3fullVerifyFileShake256 = getFilePath(foldersPath, "SHAKE256/PicnicL3FULL_SHAKE256WITHPICNIC_Verification.txt");
-        String l5fullSigFileShake256 = getFilePath(foldersPath, "SHAKE256/PicnicL5FULL_SHAKE256WITHPICNIC_Signatures.txt"); String l5fullVerifyFileShake256 = getFilePath(foldersPath, "SHAKE256/PicnicL5FULL_SHAKE256WITHPICNIC_Verification.txt");
-        byte[] plaintext = new byte[2048];
-
+        String l1fsSigFileShake256 = getFilePath(foldersPath, "SHAKE-256-WITH-PICNIC/Picnic-L1FS/Signatures.txt"); String l1fsVerifyFileShake256 = getFilePath(foldersPath, "SHAKE-256-WITH-PICNIC/Picnic-L1FS/VerifySignatures.txt");
+        String l3fsSigFileShake256 = getFilePath(foldersPath, "SHAKE-256-WITH-PICNIC/Picnic-L3FS/Signatures.txt"); String l3fsVerifyFileShake256 = getFilePath(foldersPath, "SHAKE-256-WITH-PICNIC/Picnic-L3FS/VerifySignatures.txt");
+        String l5fsSigFileShake256 = getFilePath(foldersPath, "SHAKE-256-WITH-PICNIC/Picnic-L5FS/Signatures.txt"); String l5fsVerifyFileShake256 = getFilePath(foldersPath, "SHAKE-256-WITH-PICNIC/Picnic-L5FS/VerifySignatures.txt");
+        String l1fullSigFileShake256 = getFilePath(foldersPath, "SHAKE-256-WITH-PICNIC/Picnic-L1FULL/Signatures.txt"); String l1fullVerifyFileShake256 = getFilePath(foldersPath, "SHAKE-256-WITH-PICNIC/Picnic-L1FULL/VerifySignatures.txt");
+        String l3fullSigFileShake256 = getFilePath(foldersPath, "SHAKE-256-WITH-PICNIC/Picnic-L3FULL/Signatures.txt"); String l3fullVerifyFileShake256 = getFilePath(foldersPath, "SHAKE-256-WITH-PICNIC/Picnic-L3FULL/VerifySignatures.txt");
+        String l5fullSigFileShake256 = getFilePath(foldersPath, "SHAKE-256-WITH-PICNIC/Picnic-L5FULL/Signatures.txt"); String l5fullVerifyFileShake256 = getFilePath(foldersPath, "SHAKE-256-WITH-PICNIC/Picnic-L5FULL/VerifySignatures.txt");
         for (int i = 0; i < 3; i++) {
+            byte[] plaintext = new byte[2048];
             // Creating signatures
-            KeyPairGenerator l1fsKPG = KeyPairGenerator.getInstance("PICNIC"); l1fsKPG.initialize(PicnicParameterSpec.picnicl1fs, new SecureRandom());
-            KeyPairGenerator l3fsKPG = KeyPairGenerator.getInstance("PICNIC"); l3fsKPG.initialize(PicnicParameterSpec.picnicl3fs, new SecureRandom());
-            KeyPairGenerator l5fsKPG = KeyPairGenerator.getInstance("PICNIC"); l5fsKPG.initialize(PicnicParameterSpec.picnicl5fs, new SecureRandom());
-            KeyPairGenerator l1fullKPG = KeyPairGenerator.getInstance("PICNIC"); l1fullKPG.initialize(PicnicParameterSpec.picnicl1full, new SecureRandom());
-            KeyPairGenerator l3fullKPG = KeyPairGenerator.getInstance("PICNIC"); l3fullKPG.initialize(PicnicParameterSpec.picnicl3full, new SecureRandom());
-            KeyPairGenerator l5fullKPG = KeyPairGenerator.getInstance("PICNIC"); l5fullKPG.initialize(PicnicParameterSpec.picnicl5full, new SecureRandom());
+            KeyPairGenerator l1fsKPG = KeyPairGenerator.getInstance("PICNIC", "BCPQC"); l1fsKPG.initialize(PicnicParameterSpec.picnicl1fs, new SecureRandom());
+            KeyPairGenerator l3fsKPG = KeyPairGenerator.getInstance("PICNIC", "BCPQC"); l3fsKPG.initialize(PicnicParameterSpec.picnicl3fs, new SecureRandom());
+            KeyPairGenerator l5fsKPG = KeyPairGenerator.getInstance("PICNIC", "BCPQC"); l5fsKPG.initialize(PicnicParameterSpec.picnicl5fs, new SecureRandom());
+            KeyPairGenerator l1fullKPG = KeyPairGenerator.getInstance("PICNIC", "BCPQC"); l1fullKPG.initialize(PicnicParameterSpec.picnicl1full, new SecureRandom());
+            KeyPairGenerator l3fullKPG = KeyPairGenerator.getInstance("PICNIC", "BCPQC"); l3fullKPG.initialize(PicnicParameterSpec.picnicl3full, new SecureRandom());
+            KeyPairGenerator l5fullKPG = KeyPairGenerator.getInstance("PICNIC", "BCPQC"); l5fullKPG.initialize(PicnicParameterSpec.picnicl5full, new SecureRandom());
             // Creating key pairs
             KeyPair l1fsKP = l1fsKPG.generateKeyPair(); KeyPair l3fsKP = l3fsKPG.generateKeyPair(); KeyPair l5fsKP = l5fsKPG.generateKeyPair();
             KeyPair l1fullKP = l1fullKPG.generateKeyPair(); KeyPair l3fullKP = l3fullKPG.generateKeyPair(); KeyPair l5fullKP = l5fullKPG.generateKeyPair();
@@ -404,7 +393,6 @@ public class Picnic {
             Boolean l1fullShake256Verify = shake256Verify(l1fullKP, l1fullSigShake256, plaintext); Boolean l3fullShake256Verify = shake256Verify(l3fullKP, l3fullSigShake256, plaintext); Boolean l5fullShake256Verify = shake256Verify(l5fullKP, l5fullSigShake256, plaintext);
             saveVerificationResult(l1fsShake256Verify, l1fsVerifyFileShake256); saveVerificationResult(l3fsShake256Verify, l3fsVerifyFileShake256); saveVerificationResult(l5fsShake256Verify, l5fsVerifyFileShake256);
             saveVerificationResult(l1fullShake256Verify, l1fullVerifyFileShake256); saveVerificationResult(l3fullShake256Verify, l3fullVerifyFileShake256); saveVerificationResult(l5fullShake256Verify, l5fullVerifyFileShake256);
-
         }
     }
 }

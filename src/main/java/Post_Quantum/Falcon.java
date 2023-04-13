@@ -5,12 +5,6 @@ package Post_Quantum;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.FalconParameterSpec;
 import org.openjdk.jmh.annotations.*;
-import org.openjdk.jmh.results.format.ResultFormatType;
-import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.RunnerException;
-import org.openjdk.jmh.runner.options.Options;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -53,14 +47,13 @@ public class Falcon {
         // Setting up starting variables
         Security.addProvider(new BouncyCastlePQCProvider());
         plaintext = new byte[plaintextSize];
-        SecureRandom random = new SecureRandom();
         // Creating KGPs for KPs
-        f512KPG = KeyPairGenerator.getInstance("Falcon"); f512KPG.initialize(FalconParameterSpec.falcon_512, new SecureRandom());
-        f1024KPG = KeyPairGenerator.getInstance("Falcon"); f1024KPG.initialize(FalconParameterSpec.falcon_1024, new SecureRandom());
+        f512KPG = KeyPairGenerator.getInstance("Falcon", "BCPQC"); f512KPG.initialize(FalconParameterSpec.falcon_512, new SecureRandom());
+        f1024KPG = KeyPairGenerator.getInstance("Falcon", "BCPQC"); f1024KPG.initialize(FalconParameterSpec.falcon_1024, new SecureRandom());
         // Creating KPs
         falcon512KP = falcon512KeyGeneration(); falcon1024KP = falcon1024KeyGeneration();
         // Creating Sig instances
-        f512Sig = Signature.getInstance("Falcon-512"); f1024Sig = Signature.getInstance("Falcon-1024");
+        f512Sig = Signature.getInstance("Falcon-512", "BCPQC"); f1024Sig = Signature.getInstance("Falcon-1024", "BCPQC");
         // Using variables to call KPG class to go into verify() without impacting benchmarks
         falcon512Signature = falcon512Sign(); falcon1024Signature = falcon1024Sign();
     }
@@ -68,7 +61,7 @@ public class Falcon {
     // * Section 6: Falcon 512 * \\
     // ************************* \\
     @Benchmark
-    public static KeyPair falcon512KeyGeneration() throws Exception {
+    public static KeyPair falcon512KeyGeneration() {
         return f512KPG.generateKeyPair();
     }
 
@@ -89,7 +82,7 @@ public class Falcon {
     // * Section 7: Falcon 1024 * \\
     // ************************** \\
     @Benchmark
-    public static KeyPair falcon1024KeyGeneration() throws Exception {
+    public static KeyPair falcon1024KeyGeneration() {
         return f1024KPG.generateKeyPair();
     }
 
@@ -160,16 +153,15 @@ public class Falcon {
     public static void main(String[] args) throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
         // Creating files / folders
-        String foldersPath = "Benchmark Results/Falcon Benchmarks/";
-        String f512filePath = getFilePath(foldersPath, "Falcon512_Keys.txt"); String f512SigFilePath = getFilePath(foldersPath, "Falcon512_Signatures.txt"); String f512VerifyFilePath = getFilePath(foldersPath, "Falcon512_Verification.txt");
-        String f1024filePath = getFilePath(foldersPath, "Falcon1024_Keys.txt"); String f1024SigFilePath = getFilePath(foldersPath, "Falcon1024_Signatures.txt"); String f1024VerifyFilePath = getFilePath(foldersPath, "Falcon1024_Verification.txt");
+        String foldersPath = "Benchmark Results/Post-Quantum/Falcon Benchmarks/";
+        String f512filePath = getFilePath(foldersPath, "Falcon-512/Keys.txt"); String f512SigFilePath = getFilePath(foldersPath, "Falcon-512/Signatures.txt"); String f512VerifyFilePath = getFilePath(foldersPath, "Falcon-512/VerifySignatures.txt");
+        String f1024filePath = getFilePath(foldersPath, "Falcon-1024/Keys.txt"); String f1024SigFilePath = getFilePath(foldersPath, "Falcon-1024/Signatures.txt"); String f1024VerifyFilePath = getFilePath(foldersPath, "Falcon-1024/VerifySignatures.txt");
         byte[] plaintext = new byte[2048];
-
         for (int i = 0; i < 3; i++) {
             // Creating signatures
-            Signature f512SigInit = Signature.getInstance("Falcon-512"); Signature f1024SigInit = Signature.getInstance("Falcon-1024");
-            KeyPairGenerator f512KPG = KeyPairGenerator.getInstance("Falcon"); f512KPG.initialize(FalconParameterSpec.falcon_512, new SecureRandom());
-            KeyPairGenerator f1024KPG = KeyPairGenerator.getInstance("Falcon"); f1024KPG.initialize(FalconParameterSpec.falcon_1024, new SecureRandom());
+            Signature f512SigInit = Signature.getInstance("Falcon-512", "BCPQC"); Signature f1024SigInit = Signature.getInstance("Falcon-1024", "BCPQC");
+            KeyPairGenerator f512KPG = KeyPairGenerator.getInstance("Falcon", "BCPQC"); f512KPG.initialize(FalconParameterSpec.falcon_512, new SecureRandom());
+            KeyPairGenerator f1024KPG = KeyPairGenerator.getInstance("Falcon", "BCPQC"); f1024KPG.initialize(FalconParameterSpec.falcon_1024, new SecureRandom());
             // Creating key pairs
             KeyPair f512KP = f512KPG.generateKeyPair(); KeyPair f1024KP = f1024KPG.generateKeyPair();
             String f512keysString = getKeysAsString(f512KP); String f1024keysString = getKeysAsString(f1024KP);

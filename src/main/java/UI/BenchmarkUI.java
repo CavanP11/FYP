@@ -3,6 +3,9 @@ package UI;
 // * Section 1: Imports * \\
 // ********************** \\
 import Post_Quantum.*;
+import Pre_Quantum.AES_CTR;
+import Pre_Quantum.RSA;
+import Pre_Quantum.SHA256_ECDSA;
 import org.openjdk.jmh.profile.GCProfiler;
 import org.openjdk.jmh.profile.StackProfiler;
 import org.openjdk.jmh.profile.WinPerfAsmProfiler;
@@ -63,7 +66,7 @@ public class BenchmarkUI {
         gbc.insets = new Insets(5, 0, 5, 0);
         panel.add(label, gbc);
         // Create combo boxes to select algorithms
-        String[] algorithms = {"CRYSTALS-Kyber", "CRYSTALS-Dilithium", "Falcon", "Picnic", "BIKE"};
+        String[] algorithms = {"CRYSTALS-Kyber", "CRYSTALS-Dilithium", "Falcon", "Picnic", "BIKE", "AES-CTR", "SHA256-EC", "RSA", "TwoFish"};
         JComboBox<String> comboBox1 = new JComboBox<>(algorithms);
         JComboBox<String> comboBox2 = new JComboBox<>(algorithms);
         Dimension preferredSize = new Dimension(200, 30);
@@ -159,64 +162,16 @@ public class BenchmarkUI {
                 builder2.addProfiler(WinPerfAsmProfiler.class);
             }
             // Switch to get options for selected algorithms
-            switch (Objects.requireNonNull(algorithm1)) {
-                case "Falcon" -> {
-                    builder.include(Falcon.class.getSimpleName())
-                            .result("Falcon_Benchmarks.csv");
-                    Options options = builder.build();
-                    try {
-                        new Runner(options).run();
-                    } catch (RunnerException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                }
-                case "PICNIC" -> {
-                    try {
-                        Picnic.main(new String[0]);
-                    } catch (Exception ex) {
-                        throw new RuntimeException(ex);
-                    }
-                    builder.include(Dilithium.class.getSimpleName())
-                            .result("Benchmark Results/Picnic Benchmarks/Picnic_Benchmarks.csv");
-                    Options options = builder.build();
-                }
-                case "CRYSTALS-Dilithium" -> {
-                    try {
-                        Dilithium.main(new String[0]);
-                    } catch (Exception ex) {
-                        throw new RuntimeException(ex);
-                    }
-                    builder.include(Dilithium.class.getSimpleName())
-                            .result("Benchmark Results/Dilithium Benchmarks/Dilithium_Benchmarks.csv");
-                    Options options = builder.build();
-                }
-                case "CRYSTALS-Kyber" -> {
-                    builder.include(Kyber.class.getSimpleName())
-                            .result("Kyber_Benchmarks.csv");
-                    Options options = builder.build();
-                    try {
-                        new Runner(options).run();
-                    } catch (RunnerException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                }
-                case "BIKE" -> {
-                    builder.include(BIKE.class.getSimpleName())
-                            .result("BIKE_Benchmarks.csv");
-                    Options options = builder.build();
-                    try {
-                        new Runner(options).run();
-                    } catch (RunnerException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                }
-                default -> throw new IllegalArgumentException("Invalid algorithm selected: " + algorithm1);
-            }
             switch (Objects.requireNonNull(algorithm2)) {
                 case "Falcon" -> {
-                    builder2.include(Falcon.class.getSimpleName())
-                            .result("Falcon_Benchmarks.csv");
-                    Options options = builder2.build();
+                    try {
+                        Falcon.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(Falcon.class.getSimpleName())
+                            .result("Benchmark Results/Falcon Benchmarks/Falcon_Benchmarks.csv");
+                    Options options = builder.build();
                     try {
                         new Runner(options).run();
                     } catch (RunnerException ex) {
@@ -232,6 +187,11 @@ public class BenchmarkUI {
                     builder.include(Picnic.class.getSimpleName())
                             .result("Benchmark Results/Picnic Benchmarks/Picnic_Benchmarks.csv");
                     Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
                 case "CRYSTALS-Dilithium" -> {
                     try {
@@ -242,11 +202,21 @@ public class BenchmarkUI {
                     builder.include(Dilithium.class.getSimpleName())
                             .result("Benchmark Results/Dilithium Benchmarks/Dilithium_Benchmarks.csv");
                     Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
-                case "CRYSTALS-Kyber" -> {
-                    builder2.include(Kyber.class.getSimpleName())
-                            .result("Kyber_Benchmarks.csv");
-                    Options options = builder2.build();
+                case "Dilithium-Kyber" -> {
+                    try {
+                        Kyber.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(Kyber.class.getSimpleName())
+                            .result("Benchmark Results/Kyber Benchmarks/Kyber_Benchmarks.csv");
+                    Options options = builder.build();
                     try {
                         new Runner(options).run();
                     } catch (RunnerException ex) {
@@ -262,6 +232,179 @@ public class BenchmarkUI {
                     builder.include(BIKE.class.getSimpleName())
                             .result("Benchmark Results/BIKE Benchmarks/BIKE_Benchmarks.csv");
                     Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "AES-CTR" -> {
+                    try {
+                        AES_CTR.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(AES_CTR.class.getSimpleName())
+                            .result("Benchmark Results/AES-CTR Benchmarks/AES-CTR_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "SHA256-EC" -> {
+                    try {
+                        SHA256_ECDSA.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(SHA256_ECDSA.class.getSimpleName())
+                            .result("Benchmark Results/SHA256-EC Benchmarks/SHA256-EC_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "RSA" -> {
+                    try {
+                        RSA.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(RSA.class.getSimpleName())
+                            .result("Benchmark Results/RSA Benchmarks/RSA_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                default -> throw new IllegalArgumentException("Invalid algorithm selected: " + algorithm1);
+            }
+            switch (Objects.requireNonNull(algorithm2)) {
+                case "Falcon" -> {
+                    try {
+                        Falcon.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(Falcon.class.getSimpleName())
+                            .result("Benchmark Results/Falcon Benchmarks/Falcon_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "PICNIC" -> {
+                    try {
+                        Picnic.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(Picnic.class.getSimpleName())
+                            .result("Benchmark Results/Picnic Benchmarks/Picnic_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "CRYSTALS-Dilithium" -> {
+                    try {
+                        Dilithium.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(Dilithium.class.getSimpleName())
+                            .result("Benchmark Results/Dilithium Benchmarks/Dilithium_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "Dilithium-Kyber" -> {
+                    try {
+                        Kyber.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(Kyber.class.getSimpleName())
+                            .result("Benchmark Results/Kyber Benchmarks/Kyber_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "BIKE" -> {
+                    try {
+                        BIKE.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(BIKE.class.getSimpleName())
+                            .result("Benchmark Results/BIKE Benchmarks/BIKE_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "AES-CTR" -> {
+                    try {
+                        AES_CTR.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(AES_CTR.class.getSimpleName())
+                            .result("Benchmark Results/AES-CTR Benchmarks/AES-CTR_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "SHA256-EC" -> {
+                    try {
+                        SHA256_ECDSA.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(SHA256_ECDSA.class.getSimpleName())
+                            .result("Benchmark Results/SHA256-EC Benchmarks/SHA256-EC_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "RSA" -> {
+                    try {
+                        RSA.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(RSA.class.getSimpleName())
+                            .result("Benchmark Results/RSA Benchmarks/RSA_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
                 default -> throw new IllegalArgumentException("Invalid algorithm selected: " + algorithm2);
             }
@@ -349,8 +492,13 @@ public class BenchmarkUI {
             // Switch to get options for selected algorithms
             switch (Objects.requireNonNull(algorithm1)) {
                 case "Falcon" -> {
+                    try {
+                        Falcon.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
                     builder.include(Falcon.class.getSimpleName())
-                            .result("Falcon_Benchmarks.csv");
+                            .result("Benchmark Results/Falcon Benchmarks/Falcon_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -367,6 +515,11 @@ public class BenchmarkUI {
                     builder.include(Picnic.class.getSimpleName())
                             .result("Benchmark Results/Picnic Benchmarks/Picnic_Benchmarks.csv");
                     Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
                 case "CRYSTALS-Dilithium" -> {
                     try {
@@ -377,10 +530,20 @@ public class BenchmarkUI {
                     builder.include(Dilithium.class.getSimpleName())
                             .result("Benchmark Results/Dilithium Benchmarks/Dilithium_Benchmarks.csv");
                     Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
-                case "CRYSTALS-Kyber" -> {
+                case "Dilithium-Kyber" -> {
+                    try {
+                        Kyber.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
                     builder.include(Kyber.class.getSimpleName())
-                            .result("Kyber_Benchmarks.csv");
+                            .result("Benchmark Results/Kyber Benchmarks/Kyber_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -397,6 +560,56 @@ public class BenchmarkUI {
                     builder.include(BIKE.class.getSimpleName())
                             .result("Benchmark Results/BIKE Benchmarks/BIKE_Benchmarks.csv");
                     Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "AES-CTR" -> {
+                    try {
+                        AES_CTR.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(AES_CTR.class.getSimpleName())
+                            .result("Benchmark Results/AES-CTR Benchmarks/AES-CTR_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "SHA256-EC" -> {
+                    try {
+                        SHA256_ECDSA.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(SHA256_ECDSA.class.getSimpleName())
+                            .result("Benchmark Results/SHA256-EC Benchmarks/SHA256-EC_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "RSA" -> {
+                    try {
+                        RSA.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(RSA.class.getSimpleName())
+                            .result("Benchmark Results/RSA Benchmarks/RSA_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
                 default -> throw new IllegalArgumentException("Invalid algorithm selected: " + algorithm1);
             }
