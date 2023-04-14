@@ -8,6 +8,10 @@ import org.openjdk.jmh.annotations.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.*;
 import java.util.Base64;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +51,7 @@ public class Falcon {
         // Setting up starting variables
         Security.addProvider(new BouncyCastlePQCProvider());
         plaintext = new byte[plaintextSize];
+        new SecureRandom().nextBytes(plaintext);
         // Creating KGPs for KPs
         f512KPG = KeyPairGenerator.getInstance("Falcon", "BCPQC"); f512KPG.initialize(FalconParameterSpec.falcon_512, new SecureRandom());
         f1024KPG = KeyPairGenerator.getInstance("Falcon", "BCPQC"); f1024KPG.initialize(FalconParameterSpec.falcon_1024, new SecureRandom());
@@ -134,7 +139,7 @@ public class Falcon {
         PrivateKey privateKey = keyPair.getPrivate();
 
         return "Public Key:\n " + Base64.getEncoder().encodeToString(publicKey.getEncoded()) + "\n\n" +
-                "Private Key:\n " + Base64.getEncoder().encodeToString(privateKey.getEncoded()) + "\n\n";
+                "Private Key:\n " + Base64.getEncoder().encodeToString(privateKey.getEncoded()) + "\n";
     }
 
     private static String getFilePath(String folderPath, String fileName) {
@@ -142,7 +147,7 @@ public class Falcon {
     }
 
     public static String decodeSignature(byte[] signature) {
-        return "Signature: " + Base64.getEncoder().encodeToString(signature);
+        return "Signature:\n" + Base64.getEncoder().encodeToString(signature);
     }
 
     public static void saveVerificationResult(boolean verify, String filePath) {
@@ -150,14 +155,60 @@ public class Falcon {
         saveDataToFile(verificationText, filePath);
     }
 
+    public static void writeBytesToFile(byte[] bytes, String filePath) throws IOException {
+        Path path = Paths.get(filePath);
+        // Ensure the directories exist
+        Path parentDir = path.getParent();
+        if (parentDir != null) {
+            Files.createDirectories(parentDir);
+        }
+        // Create the file if it doesn't exist
+        try {
+            Files.createFile(path);
+        } catch (FileAlreadyExistsException e) {
+            // Ignore this exception, as the file already exists, and we can continue writing the content
+        }
+        // Write the content to the file
+        Files.write(path, bytes);
+    }
+
+    private static String getKeys(KeyPair keyPair) {
+        PublicKey publicKey = keyPair.getPublic();
+        PrivateKey privateKey = keyPair.getPrivate();
+        byte[] pubKey = publicKey.getEncoded();
+        byte[] privKey = privateKey.getEncoded();
+        String result1 = new String(pubKey);
+        String result2 = new String(privKey);
+        return "Falcon Public Key:\n" + result1 + "\n\n" +
+                "Falcon Private Key:\n" + result2 + "\n";
+    }
+
+    public static String decodePlaintext(byte[] plaintext) {
+        return "Plaintext:\n" + Base64.getEncoder().encodeToString(plaintext);
+    }
+
     public static void main(String[] args) throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
         // Creating files / folders
         String foldersPath = "Benchmark Results/Post-Quantum/Falcon Benchmarks/";
-        String f512filePath = getFilePath(foldersPath, "Falcon-512/Keys.txt"); String f512SigFilePath = getFilePath(foldersPath, "Falcon-512/Signatures.txt"); String f512VerifyFilePath = getFilePath(foldersPath, "Falcon-512/VerifySignatures.txt");
-        String f1024filePath = getFilePath(foldersPath, "Falcon-1024/Keys.txt"); String f1024SigFilePath = getFilePath(foldersPath, "Falcon-1024/Signatures.txt"); String f1024VerifyFilePath = getFilePath(foldersPath, "Falcon-1024/VerifySignatures.txt");
-        byte[] plaintext = new byte[2048];
+        // Creating Falcon 512 file locations
+        String f512filePathPlaintext = getFilePath(foldersPath, "Falcon-512/Encoded/Plaintext.txt"); String f512filePathPlaintextDecoded = getFilePath(foldersPath, "Falcon-512/Decoded/Decoded_Plaintext.txt");
+        String f512filePath = getFilePath(foldersPath, "Falcon-512/Encoded/Keys.txt"); String f512filePathDecoded = getFilePath(foldersPath, "Falcon-512/Decoded/Decoded_Keys.txt");
+        String f512SigFilePath = getFilePath(foldersPath, "Falcon-512/Encoded/Signatures.txt"); String f512SigFilePathDecoded = getFilePath(foldersPath, "Falcon-512/Decoded/Decoded_Signatures.txt");
+        String f512VerifyFilePath = getFilePath(foldersPath, "Falcon-512/VerifySignatures.txt");
+        // Creating Falcon 1024 file locations
+        String f1024filePathPlaintext = getFilePath(foldersPath, "Falcon-1024/Plaintext.txt"); String f1024filePathPlaintextDecoded = getFilePath(foldersPath, "Falcon-1024/Decoded/Decoded_Plaintext.txt");
+        String f1024filePath = getFilePath(foldersPath, "Falcon-1024/Encoded/Keys.txt"); String f1024filePathDecoded = getFilePath(foldersPath, "Falcon-1024/Decoded/Decoded_Keys.txt");
+        String f1024SigFilePath = getFilePath(foldersPath, "Falcon-1024/Encoded/Signatures.txt"); String f1024SigFilePathDecoded = getFilePath(foldersPath, "Falcon-1024/Decoded/Decoded_Signatures.txt");
+        String f1024VerifyFilePath = getFilePath(foldersPath, "Falcon-1024/VerifySignatures.txt");
         for (int i = 0; i < 3; i++) {
+            byte[] plaintext = new byte[2048];
+            new SecureRandom().nextBytes(plaintext);
+            // Decoded plaintext
+            String decodedPlaintext = decodePlaintext(plaintext);
+            saveDataToFile(decodedPlaintext, f512filePathPlaintextDecoded); saveDataToFile(decodedPlaintext, f1024filePathPlaintextDecoded);
+            // Encoded plaintext
+            writeBytesToFile(plaintext, f512filePathPlaintext); writeBytesToFile(plaintext, f1024filePathPlaintext);
             // Creating signatures
             Signature f512SigInit = Signature.getInstance("Falcon-512", "BCPQC"); Signature f1024SigInit = Signature.getInstance("Falcon-1024", "BCPQC");
             KeyPairGenerator f512KPG = KeyPairGenerator.getInstance("Falcon", "BCPQC"); f512KPG.initialize(FalconParameterSpec.falcon_512, new SecureRandom());
@@ -165,13 +216,18 @@ public class Falcon {
             // Creating key pairs
             KeyPair f512KP = f512KPG.generateKeyPair(); KeyPair f1024KP = f1024KPG.generateKeyPair();
             String f512keysString = getKeysAsString(f512KP); String f1024keysString = getKeysAsString(f1024KP);
-            saveDataToFile(f512keysString, f512filePath);  saveDataToFile(f1024keysString, f1024filePath);
+            saveDataToFile(f512keysString, f512filePathDecoded);  saveDataToFile(f1024keysString, f1024filePathDecoded);
+            // Encoded key pairs
+            String f512EncodedKP = getKeys(f512KP); String f1024EncodedKP = getKeys(f1024KP);
+            saveDataToFile(f512EncodedKP, f512filePath); saveDataToFile(f1024EncodedKP, f1024filePath);
             // Creating signature instances
             byte[] f512Sig = falconSign(f512KP, plaintext, f512SigInit); byte[] f1024Sig = falconSign(f1024KP, plaintext, f1024SigInit);
             String f512DecodedSignature = decodeSignature(f512Sig); String f1024DecodedSignature = decodeSignature(f1024Sig);
-            saveDataToFile(f512DecodedSignature, f512SigFilePath); saveDataToFile(f1024DecodedSignature, f1024SigFilePath);
+            saveDataToFile(f512DecodedSignature, f512SigFilePathDecoded); saveDataToFile(f1024DecodedSignature, f1024SigFilePathDecoded);
+            // Encoded signature
+            writeBytesToFile(f512Sig, f512SigFilePath); writeBytesToFile(f1024Sig, f1024SigFilePath);
             // Verifying signatures
-            Boolean f512Verify = falconVerify(f512KP, f512Sig, plaintext, f512SigInit); Boolean f1024Verify = falconVerify(f1024KP, f1024Sig, plaintext, f1024SigInit);
+            boolean f512Verify = falconVerify(f512KP, f512Sig, plaintext, f512SigInit); boolean f1024Verify = falconVerify(f1024KP, f1024Sig, plaintext, f1024SigInit);
             saveVerificationResult(f512Verify, f512VerifyFilePath); saveVerificationResult(f1024Verify, f1024VerifyFilePath);
         }
     }

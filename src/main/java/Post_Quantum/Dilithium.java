@@ -7,6 +7,10 @@ import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
 import org.openjdk.jmh.annotations.*;
 import java.io.*;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -56,6 +60,7 @@ public class Dilithium {
     public void setup() throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
         plaintext = new byte[plaintextSize];
+        new SecureRandom().nextBytes(plaintext);
         // Generating KPGs
         d2KPG = KeyPairGenerator.getInstance("DILITHIUM2", "BCPQC"); d2KPG.initialize(DilithiumParameterSpec.dilithium2, new SecureRandom());
         d3KPG = KeyPairGenerator.getInstance("DILITHIUM3", "BCPQC"); d3KPG.initialize(DilithiumParameterSpec.dilithium3, new SecureRandom());
@@ -437,7 +442,11 @@ public class Dilithium {
     }
 
     public static String decodeSignature(byte[] signature) {
-        return "Signature: " + Base64.getEncoder().encodeToString(signature);
+        return "Signature:\n" + Base64.getEncoder().encodeToString(signature);
+    }
+
+    public static String decodePlaintext(byte[] plaintext) {
+        return "Plaintext:\n" + Base64.getEncoder().encodeToString(plaintext);
     }
 
     public static void saveVerificationResult(boolean verify, String filePath) {
@@ -445,18 +454,71 @@ public class Dilithium {
         saveDataToFile(verificationText, filePath);
     }
 
+    public static void writeBytesToFile(byte[] bytes, String filePath) throws IOException {
+        Path path = Paths.get(filePath);
+        // Ensure the directories exist
+        Path parentDir = path.getParent();
+        if (parentDir != null) {
+            Files.createDirectories(parentDir);
+        }
+        // Create the file if it doesn't exist
+        try {
+            Files.createFile(path);
+        } catch (FileAlreadyExistsException e) {
+            // Ignore this exception, as the file already exists, and we can continue writing the content
+        }
+        // Write the content to the file
+        Files.write(path, bytes);
+    }
+
+    private static String getKeys(KeyPair keyPair) {
+        PublicKey publicKey = keyPair.getPublic();
+        PrivateKey privateKey = keyPair.getPrivate();
+        byte[] pubKey = publicKey.getEncoded();
+        byte[] privKey = privateKey.getEncoded();
+        String result1 = new String(pubKey);
+        String result2 = new String(privKey);
+        return "Bike Public Key:\n" + result1 + "\n\n" +
+                "Bike Private Key:\n" + result2 + "\n";
+    }
+
     public static void main(String[] args) throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
         // Creating files / folders
         String foldersPath = "Benchmark Results/Post-Quantum/Dilithium Benchmarks/";
-        String d2filePath = getFilePath(foldersPath, "Dilithium-2/Keys.txt"); String d2SigFilePath = getFilePath(foldersPath, "Dilithium-2/Signatures.txt"); String d2VerifyFilePath = getFilePath(foldersPath, "Dilithium-2/VerifySignatures.txt");
-        String d3filePath = getFilePath(foldersPath, "Dilithium-3/Keys.txt"); String d3SigFilePath = getFilePath(foldersPath, "Dilithium-3/Signatures.txt"); String d3VerifyFilePath = getFilePath(foldersPath, "Dilithium-3/VerifySignatures.txt");
-        String d5filePath = getFilePath(foldersPath, "Dilithium-5/Keys.txt"); String d5SigFilePath = getFilePath(foldersPath, "Dilithium-5/Signatures.txt"); String d5VerifyFilePath = getFilePath(foldersPath, "Dilithium-5/VerifySignatures.txt");
-        String d2AesfilePath = getFilePath(foldersPath, "Dilithium-2-AES/Keys.txt"); String d2AesSigFilePath = getFilePath(foldersPath, "Dilithium-2-AES/Signatures.txt"); String d2AesVerifyFilePath = getFilePath(foldersPath, "Dilithium-2-AES/Verification.txt");
-        String d3AesfilePath = getFilePath(foldersPath, "Dilithium-3-AES/Keys.txt"); String d3AesSigFilePath = getFilePath(foldersPath, "Dilithium-3-AES/Signatures.txt"); String d3AesVerifyFilePath = getFilePath(foldersPath, "Dilithium-3-AES/VerifySignatures.txt");
-        String d5AesfilePath = getFilePath(foldersPath, "Dilithium-5-AES/Keys.txt"); String d5AesSigFilePath = getFilePath(foldersPath, "Dilithium-5-AES/Signatures.txt"); String d5AesVerifyFilePath = getFilePath(foldersPath, "Dilithium-5-AES/VerifySignatures.txt");
+        // Creating file locations for Dilithium 2
+        String d2Plaintext = getFilePath(foldersPath, "Dilithium-2/Encoded/Plaintext.txt"); String d2PlaintextDecoded = getFilePath(foldersPath, "Dilithium-2/Decoded/Decoded_Plaintext.txt");
+        String d2filePath = getFilePath(foldersPath, "Dilithium-2/Encoded/Keys.txt"); String d2filePathDecoded = getFilePath(foldersPath, "Dilithium-2/Decoded/Decoded_Keys.txt");
+        String d2SigFilePath = getFilePath(foldersPath, "Dilithium-2/Encoded/Signatures.txt"); String d2SigFilePathDecoded = getFilePath(foldersPath, "Dilithium-2/Decoded/Decoded_Signatures.txt");
+        String d2VerifyFilePath = getFilePath(foldersPath, "Dilithium-2/VerifySignatures.txt");
+        // Creating file locations for Dilithium 3
+        String d3Plaintext = getFilePath(foldersPath, "Dilithium-3/Encoded/Plaintext.txt"); String d3PlaintextDecoded = getFilePath(foldersPath, "Dilithium-3/Decoded/Decoded_Plaintext.txt");
+        String d3filePath = getFilePath(foldersPath, "Dilithium-3/Encoded/Keys.txt"); String d3filePathDecoded = getFilePath(foldersPath, "Dilithium-3/Decoded/Decoded_Keys.txt");
+        String d3SigFilePath = getFilePath(foldersPath, "Dilithium-3/Encoded/Signatures.txt"); String d3SigFilePathDecoded = getFilePath(foldersPath, "Dilithium-3/Decoded/Decoded_Signatures.txt");
+        String d3VerifyFilePath = getFilePath(foldersPath, "Dilithium-3/VerifySignatures.txt");
+        // Creating file locations for Dilithium 5
+        String d5Plaintext = getFilePath(foldersPath, "Dilithium-5/Encoded/Plaintext.txt"); String d5PlaintextDecoded = getFilePath(foldersPath, "Dilithium-5/Decoded/Decoded_Plaintext.txt");
+        String d5filePath = getFilePath(foldersPath, "Dilithium-5/Encoded/Keys.txt"); String d5filePathDecoded = getFilePath(foldersPath, "Dilithium-5/Decoded/Decoded_Keys.txt");
+        String d5SigFilePath = getFilePath(foldersPath, "Dilithium-5/Encoded/Signatures.txt"); String d5SigFilePathDecoded = getFilePath(foldersPath, "Dilithium-5/Decoded/Decoded_Signatures.txt");
+        String d5VerifyFilePath = getFilePath(foldersPath, "Dilithium-5/VerifySignatures.txt");
+        // Creating file locations for Dilithium 2 Aes
+        String d2AesPlaintext = getFilePath(foldersPath, "Dilithium-2-AES/Encoded/Plaintext.txt"); String d2AesPlaintextDecoded = getFilePath(foldersPath, "Dilithium-2-AES/Decoded/Decoded_Plaintext.txt");
+        String d2AesfilePath = getFilePath(foldersPath, "Dilithium-2-AES/Encoded/Keys.txt"); String d2AesfilePathDecoded = getFilePath(foldersPath, "Dilithium-2-AES/Decoded/Decoded_Keys.txt");
+        String d2AesSigFilePath = getFilePath(foldersPath, "Dilithium-2-AES/Encoded/Signatures.txt"); String d2AesSigFilePathDecoded = getFilePath(foldersPath, "Dilithium-2-AES/Decoded/Decoded_Signatures.txt");
+        String d2AesVerifyFilePath = getFilePath(foldersPath, "Dilithium-2-AES/Verification.txt");
+        // Creating file locations for Dilithium 3 Aes
+        String d3AesPlaintext = getFilePath(foldersPath, "Dilithium-3-AES/Encoded/Plaintext.txt"); String d3AesPlaintextDecoded = getFilePath(foldersPath, "Dilithium-3-AES/Decoded/Decoded_Plaintext.txt");
+        String d3AesfilePath = getFilePath(foldersPath, "Dilithium-3-AES/Encoded/Keys.txt"); String d3AesfilePathDecoded = getFilePath(foldersPath, "Dilithium-3-AES/Decoded/Decoded_Keys.txt");
+        String d3AesSigFilePath = getFilePath(foldersPath, "Dilithium-3-AES/Encoded/Signatures.txt"); String d3AesSigFilePathDecoded = getFilePath(foldersPath, "Dilithium-3-AES/Decoded/Decoded_Signatures.txt");
+        String d3AesVerifyFilePath = getFilePath(foldersPath, "Dilithium-3-AES/VerifySignatures.txt");
+        // Creating file locations for Dilithium 5 Aes
+        String d5AesPlaintext = getFilePath(foldersPath, "Dilithium-5-AES/Encoded/Plaintext.txt"); String d5AesPlaintextDecoded = getFilePath(foldersPath, "Dilithium-5-AES/Decoded/Decoded_Plaintext.txt");
+        String d5AesfilePath = getFilePath(foldersPath, "Dilithium-5-AES/Encoded/Keys.txt"); String d5AesfilePathDecoded = getFilePath(foldersPath, "Dilithium-5-AES/Decoded/Decoded_Keys.txt");
+        String d5AesSigFilePath = getFilePath(foldersPath, "Dilithium-5-AES/Encoded/Signatures.txt"); String d5AesSigFilePathDecoded = getFilePath(foldersPath, "Dilithium-5-AES/Decoded/Decoded_Signatures.txt");
+        String d5AesVerifyFilePath = getFilePath(foldersPath, "Dilithium-5-AES/VerifySignatures.txt");
         for (int i = 0; i < 3; i++) {
             byte[] plaintext = new byte[2048];
+            new SecureRandom().nextBytes(plaintext);
             // Creating KPGs for key pairs
             KeyPairGenerator d2KPG = KeyPairGenerator.getInstance("DILITHIUM2", "BCPQC"); d2KPG.initialize(DilithiumParameterSpec.dilithium2, new SecureRandom());
             KeyPairGenerator d3KPG = KeyPairGenerator.getInstance("DILITHIUM3", "BCPQC"); d3KPG.initialize(DilithiumParameterSpec.dilithium3, new SecureRandom());
@@ -464,14 +526,26 @@ public class Dilithium {
             KeyPairGenerator d2AesKPG = KeyPairGenerator.getInstance("DILITHIUM2-AES", "BCPQC"); d2AesKPG.initialize(DilithiumParameterSpec.dilithium2_aes, new SecureRandom());
             KeyPairGenerator d3AesKPG = KeyPairGenerator.getInstance("DILITHIUM3-AES", "BCPQC"); d3AesKPG.initialize(DilithiumParameterSpec.dilithium3_aes, new SecureRandom());
             KeyPairGenerator d5AesKPG = KeyPairGenerator.getInstance("DILITHIUM5-AES", "BCPQC"); d5AesKPG.initialize(DilithiumParameterSpec.dilithium5_aes, new SecureRandom());
+            // Encoded plaintext
+            writeBytesToFile(plaintext, d2Plaintext); writeBytesToFile(plaintext, d3Plaintext); writeBytesToFile(plaintext, d5Plaintext);
+            writeBytesToFile(plaintext, d2AesPlaintext); writeBytesToFile(plaintext, d3AesPlaintext); writeBytesToFile(plaintext, d5AesPlaintext);
+            // Decoded plaintext
+            String decodedPlaintext = decodePlaintext(plaintext);
+            saveDataToFile(decodedPlaintext, d2PlaintextDecoded); saveDataToFile(decodedPlaintext, d3PlaintextDecoded); saveDataToFile(decodedPlaintext, d5PlaintextDecoded);
+            saveDataToFile(decodedPlaintext, d2AesPlaintextDecoded); saveDataToFile(decodedPlaintext, d3AesPlaintextDecoded); saveDataToFile(decodedPlaintext, d5AesPlaintextDecoded);
             // Creating key pairs
             KeyPair d2KP = d2KPG.generateKeyPair(); KeyPair d3KP = d3KPG.generateKeyPair(); KeyPair d5KP = d5KPG.generateKeyPair();
             KeyPair d2AesKP = d2AesKPG.generateKeyPair(); KeyPair d3AesKP = d3AesKPG.generateKeyPair(); KeyPair d5AesKP = d5AesKPG.generateKeyPair();
             String d2keysString = getKeysAsString(d2KP); String d3keysString = getKeysAsString(d3KP); String d5keysString = getKeysAsString(d5KP);
             String d2AeskeysString = getKeysAsString(d2AesKP); String d3AeskeysString = getKeysAsString(d3AesKP); String d5AeskeysString = getKeysAsString(d5AesKP);
-            saveDataToFile(d2keysString, d2filePath); saveDataToFile(d3keysString, d3filePath); saveDataToFile(d5keysString, d5filePath);
-            saveDataToFile(d2AeskeysString, d2AesfilePath); saveDataToFile(d3AeskeysString, d3AesfilePath); saveDataToFile(d5AeskeysString, d5AesfilePath);
-            // Creating signature instances, "BCPQC"
+            saveDataToFile(d2keysString, d2filePathDecoded); saveDataToFile(d3keysString, d3filePathDecoded); saveDataToFile(d5keysString, d5filePathDecoded);
+            saveDataToFile(d2AeskeysString, d2AesfilePathDecoded); saveDataToFile(d3AeskeysString, d3AesfilePathDecoded); saveDataToFile(d5AeskeysString, d5AesfilePathDecoded);
+            // Encoded keys
+            String d2EncKeys = getKeys(d2KP); String d3EncKeys = getKeys(d3KP); String d5EncKeys = getKeys(d5KP);
+            String d2AesEncKeys = getKeys(d2AesKP); String d3AesEncKeys = getKeys(d3AesKP); String d5AesEncKeys = getKeys(d5AesKP);
+            saveDataToFile(d2EncKeys, d2filePath); saveDataToFile(d3EncKeys, d3filePath); saveDataToFile(d5EncKeys, d5filePath);
+            saveDataToFile(d2AesEncKeys, d2AesfilePath); saveDataToFile(d3AesEncKeys, d3AesfilePath); saveDataToFile(d5AesEncKeys, d5AesfilePath);
+            // Creating signature instances
             Signature d2SigInit = Signature.getInstance("DILITHIUM2", "BCPQC"); Signature d3SigInit = Signature.getInstance("DILITHIUM3", "BCPQC"); Signature d5SigInit = Signature.getInstance("DILITHIUM5", "BCPQC");
             Signature d2AesSigInit = Signature.getInstance("DILITHIUM2-AES", "BCPQC"); Signature d3AesSigInit = Signature.getInstance("DILITHIUM3-AES", "BCPQC"); Signature d5AesSigInit = Signature.getInstance("DILITHIUM5-AES", "BCPQC");
             // Creating signing instances
@@ -479,8 +553,11 @@ public class Dilithium {
             byte[] d2AesSig = dilithiumSign(d2AesKP, plaintext, d2AesSigInit); byte[] d3AesSig = dilithiumSign(d3AesKP, plaintext, d3AesSigInit); byte[] d5AesSig = dilithiumSign(d5AesKP, plaintext, d5AesSigInit);
             String d2DecodedSignature = decodeSignature(d2Sig); String d3DecodedSignature = decodeSignature(d3Sig); String d5DecodedSignature = decodeSignature(d5Sig);
             String d2AesDecodedSignature = decodeSignature(d2AesSig); String d3AesDecodedSignature = decodeSignature(d3AesSig); String d5AesDecodedSignature = decodeSignature(d5AesSig);
-            saveDataToFile(d2DecodedSignature, d2SigFilePath); saveDataToFile(d3DecodedSignature, d3SigFilePath); saveDataToFile(d5DecodedSignature, d5SigFilePath);
-            saveDataToFile(d2AesDecodedSignature, d2AesSigFilePath); saveDataToFile(d3AesDecodedSignature, d3AesSigFilePath); saveDataToFile(d5AesDecodedSignature, d5AesSigFilePath);
+            saveDataToFile(d2DecodedSignature, d2SigFilePathDecoded); saveDataToFile(d3DecodedSignature, d3SigFilePathDecoded); saveDataToFile(d5DecodedSignature, d5SigFilePathDecoded);
+            saveDataToFile(d2AesDecodedSignature, d2AesSigFilePathDecoded); saveDataToFile(d3AesDecodedSignature, d3AesSigFilePathDecoded); saveDataToFile(d5AesDecodedSignature, d5AesSigFilePathDecoded);
+            // Encoded signature
+            writeBytesToFile(d2Sig, d2SigFilePath); writeBytesToFile(d3Sig, d3SigFilePath); writeBytesToFile(d5Sig, d5SigFilePath);
+            writeBytesToFile(d2AesSig, d2AesSigFilePath); writeBytesToFile(d3AesSig, d3AesSigFilePath); writeBytesToFile(d5AesSig, d5AesSigFilePath);
             // Verifying signatures
             Boolean d2Verify = dilithiumVerify(d2KP, d2Sig, plaintext, d2SigInit); Boolean d3Verify = dilithiumVerify(d3KP, d3Sig, plaintext, d3SigInit); Boolean d5Verify = dilithiumVerify(d5KP, d5Sig, plaintext, d5SigInit);
             Boolean d2AesVerify = dilithiumVerify(d2AesKP, d2AesSig, plaintext, d2AesSigInit); Boolean d3AesVerify = dilithiumVerify(d3AesKP, d3AesSig, plaintext, d3AesSigInit); Boolean d5AesVerify = dilithiumVerify(d5AesKP, d5AesSig, plaintext, d5AesSigInit);

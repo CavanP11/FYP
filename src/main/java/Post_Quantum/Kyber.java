@@ -14,6 +14,10 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.*;
 import java.util.Arrays;
 import java.util.Base64;
@@ -50,6 +54,9 @@ public class Kyber {
     private static byte[] k512AesWB; private static byte[] k768AesWB; private static byte[] k1024AesWB;
 
     private static final byte[] k512KB = new byte[16]; private static final byte[] k768KB = new byte[24]; private static final byte[] k1024KB = new byte[32];
+
+    private static SecretKeyWithEncapsulation k512PubEnc; private static SecretKeyWithEncapsulation k768PubEnc; private static SecretKeyWithEncapsulation k1024PubEnc;
+    private static SecretKeyWithEncapsulation k512AesPubEnc; private static SecretKeyWithEncapsulation k768AesPubEnc; private static SecretKeyWithEncapsulation k1024AesPubEnc;
     // ******************** \\
     // * Section 5: Setup * \\
     // ******************** \\
@@ -82,6 +89,9 @@ public class Kyber {
         // Getting wrapped bytes from methods.
         k512WB = k512WrapKey(); k768WB = k768WrapKey(); k1024WB = k1024WrapKey();
         k512AesWB = k512AesWrapKey(); k768AesWB = k768AesWrapKey(); k1024AesWB = k1024AesWrapKey();
+
+        k512PubEnc = k512EncapsulatedPublicKeyGen(); k768PubEnc = k768EncapsulatedPublicKeyGen(); k1024PubEnc = k1024EncapsulatedPublicKeyGen();
+        k512AesPubEnc = k512AesEncapsulatedPublicKeyGen(); k768AesPubEnc = k768AesEncapsulatedPublicKeyGen(); k1024AesPubEnc = k1024AesEncapsulatedPublicKeyGen();
     }
     // ************************ \\
     // * Section 6: Kyber 512 * \\
@@ -92,13 +102,19 @@ public class Kyber {
     }
 
     @Benchmark
-    public void k512EncapsulatedKeyGen() throws Exception {
+    public SecretKeyWithEncapsulation k512EncapsulatedPublicKeyGen() throws Exception {
         // Generate encoded keys from previously generated key pairs.
         KeyGenerator keyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber512.getName(), "BCPQC");
         keyGen.init(new KEMGenerateSpec(k512KP.getPublic(), "AES"), new SecureRandom());
-        SecretKeyWithEncapsulation pubEnc = (SecretKeyWithEncapsulation)keyGen.generateKey();
-        keyGen.init(new KEMExtractSpec(k512KP.getPrivate(), pubEnc.getEncapsulation(), "AES"));
-        SecretKeyWithEncapsulation privEnc = (SecretKeyWithEncapsulation)keyGen.generateKey();
+        return (SecretKeyWithEncapsulation)keyGen.generateKey();
+    }
+
+    @Benchmark
+    public static SecretKeyWithEncapsulation k512EncapsulatedPrivateKeyGen() throws Exception {
+        // Generate encoded keys from previously generated key pairs.
+        KeyGenerator keyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber512.getName(), "BCPQC");
+        keyGen.init(new KEMExtractSpec(k512KP.getPrivate(), k512PubEnc.getEncapsulation(), "AES"));
+        return (SecretKeyWithEncapsulation)keyGen.generateKey();
     }
 
     @Benchmark
@@ -121,13 +137,19 @@ public class Kyber {
     }
 
     @Benchmark
-    public void k768EncapsulatedKeyGen() throws Exception {
+    public SecretKeyWithEncapsulation k768EncapsulatedPublicKeyGen() throws Exception {
         // Generate encoded keys from previously generated key pairs.
         KeyGenerator keyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber768.getName(), "BCPQC");
         keyGen.init(new KEMGenerateSpec(k768KP.getPublic(), "AES"), new SecureRandom());
-        SecretKeyWithEncapsulation pubEnc = (SecretKeyWithEncapsulation)keyGen.generateKey();
-        keyGen.init(new KEMExtractSpec(k768KP.getPrivate(), pubEnc.getEncapsulation(), "AES"));
-        SecretKeyWithEncapsulation privEnc = (SecretKeyWithEncapsulation)keyGen.generateKey();
+        return (SecretKeyWithEncapsulation)keyGen.generateKey();
+    }
+
+    @Benchmark
+    public static SecretKeyWithEncapsulation k768EncapsulatedPrivateKeyGen() throws Exception {
+        // Generate encoded keys from previously generated key pairs.
+        KeyGenerator keyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber768.getName(), "BCPQC");
+        keyGen.init(new KEMExtractSpec(k768KP.getPrivate(), k768PubEnc.getEncapsulation(), "AES"));
+        return (SecretKeyWithEncapsulation)keyGen.generateKey();
     }
 
     @Benchmark
@@ -150,13 +172,19 @@ public class Kyber {
     }
 
     @Benchmark
-    public void k1024EncapsulatedKeyGen() throws Exception {
+    public SecretKeyWithEncapsulation k1024EncapsulatedPublicKeyGen() throws Exception {
         // Generate encoded keys from previously generated key pairs.
         KeyGenerator keyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber1024.getName(), "BCPQC");
         keyGen.init(new KEMGenerateSpec(k1024KP.getPublic(), "AES"), new SecureRandom());
-        SecretKeyWithEncapsulation pubEnc = (SecretKeyWithEncapsulation)keyGen.generateKey();
-        keyGen.init(new KEMExtractSpec(k1024KP.getPrivate(), pubEnc.getEncapsulation(), "AES"));
-        SecretKeyWithEncapsulation privEnc = (SecretKeyWithEncapsulation)keyGen.generateKey();
+        return (SecretKeyWithEncapsulation)keyGen.generateKey();
+    }
+
+    @Benchmark
+    public static SecretKeyWithEncapsulation k1024EncapsulatedPrivateKeyGen() throws Exception {
+        // Generate encoded keys from previously generated key pairs.
+        KeyGenerator keyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber1024.getName(), "BCPQC");
+        keyGen.init(new KEMExtractSpec(k1024KP.getPrivate(), k1024PubEnc.getEncapsulation(), "AES"));
+        return (SecretKeyWithEncapsulation)keyGen.generateKey();
     }
 
     @Benchmark
@@ -179,13 +207,19 @@ public class Kyber {
     }
 
     @Benchmark
-    public void k512AesEncapsulatedKeyGen() throws Exception {
+    public SecretKeyWithEncapsulation k512AesEncapsulatedPublicKeyGen() throws Exception {
         // Generate encoded keys from previously generated key pairs.
         KeyGenerator keyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber512_aes.getName(), "BCPQC");
         keyGen.init(new KEMGenerateSpec(k512AesKP.getPublic(), "AES"), new SecureRandom());
-        SecretKeyWithEncapsulation pubEnc = (SecretKeyWithEncapsulation)keyGen.generateKey();
-        keyGen.init(new KEMExtractSpec(k512AesKP.getPrivate(), pubEnc.getEncapsulation(), "AES"));
-        SecretKeyWithEncapsulation privEnc = (SecretKeyWithEncapsulation)keyGen.generateKey();
+        return (SecretKeyWithEncapsulation)keyGen.generateKey();
+    }
+
+    @Benchmark
+    public static SecretKeyWithEncapsulation k512AesEncapsulatedPrivateKeyGen() throws Exception {
+        // Generate encoded keys from previously generated key pairs.
+        KeyGenerator keyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber512_aes.getName(), "BCPQC");
+        keyGen.init(new KEMExtractSpec(k512AesKP.getPrivate(), k512AesPubEnc.getEncapsulation(), "AES"));
+        return (SecretKeyWithEncapsulation)keyGen.generateKey();
     }
 
     @Benchmark
@@ -208,13 +242,19 @@ public class Kyber {
     }
 
     @Benchmark
-    public void k768AesEncapsulatedKeyGen() throws Exception {
+    public SecretKeyWithEncapsulation k768AesEncapsulatedPublicKeyGen() throws Exception {
         // Generate encoded keys from previously generated key pairs.
         KeyGenerator keyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber768_aes.getName(), "BCPQC");
         keyGen.init(new KEMGenerateSpec(k768AesKP.getPublic(), "AES"), new SecureRandom());
-        SecretKeyWithEncapsulation pubEnc = (SecretKeyWithEncapsulation)keyGen.generateKey();
-        keyGen.init(new KEMExtractSpec(k768AesKP.getPrivate(), pubEnc.getEncapsulation(), "AES"));
-        SecretKeyWithEncapsulation privEnc = (SecretKeyWithEncapsulation)keyGen.generateKey();
+        return (SecretKeyWithEncapsulation)keyGen.generateKey();
+    }
+
+    @Benchmark
+    public static SecretKeyWithEncapsulation k768AesEncapsulatedPrivateKeyGen() throws Exception {
+        // Generate encoded keys from previously generated key pairs.
+        KeyGenerator keyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber768_aes.getName(), "BCPQC");
+        keyGen.init(new KEMExtractSpec(k768AesKP.getPrivate(), k768AesPubEnc.getEncapsulation(), "AES"));
+        return (SecretKeyWithEncapsulation)keyGen.generateKey();
     }
 
     @Benchmark
@@ -237,13 +277,19 @@ public class Kyber {
     }
 
     @Benchmark
-    public void k1024AesEncapsulatedKeyGen() throws Exception {
+    public SecretKeyWithEncapsulation k1024AesEncapsulatedPublicKeyGen() throws Exception {
         // Generate encoded keys from previously generated key pairs.
         KeyGenerator keyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber1024_aes.getName(), "BCPQC");
         keyGen.init(new KEMGenerateSpec(k1024AesKP.getPublic(), "AES"), new SecureRandom());
-        SecretKeyWithEncapsulation pubEnc = (SecretKeyWithEncapsulation)keyGen.generateKey();
-        keyGen.init(new KEMExtractSpec(k1024AesKP.getPrivate(), pubEnc.getEncapsulation(), "AES"));
-        SecretKeyWithEncapsulation privEnc = (SecretKeyWithEncapsulation)keyGen.generateKey();
+        return (SecretKeyWithEncapsulation)keyGen.generateKey();
+    }
+
+    @Benchmark
+    public static SecretKeyWithEncapsulation k1024AesEncapsulatedPrivateKeyGen() throws Exception {
+        // Generate encoded keys from previously generated key pairs.
+        KeyGenerator keyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber1024_aes.getName(), "BCPQC");
+        keyGen.init(new KEMExtractSpec(k1024AesKP.getPrivate(), k1024AesPubEnc.getEncapsulation(), "AES"));
+        return (SecretKeyWithEncapsulation)keyGen.generateKey();
     }
 
     @Benchmark
@@ -314,19 +360,120 @@ public class Kyber {
         return Arrays.equals(key1Bytes, keyBytes);
     }
 
+    public static void writeBytesToFile(byte[] bytes, String filePath) throws IOException {
+        Path path = Paths.get(filePath);
+        // Ensure the directories exist
+        Path parentDir = path.getParent();
+        if (parentDir != null) {
+            Files.createDirectories(parentDir);
+        }
+        // Create the file if it doesn't exist
+        try {
+            Files.createFile(path);
+        } catch (FileAlreadyExistsException e) {
+            // Ignore this exception, as the file already exists, and we can continue writing the content
+        }
+        // Write the content to the file
+        Files.write(path, bytes);
+    }
+
+    private static String getKeys(KeyPair keyPair) {
+        PublicKey publicKey = keyPair.getPublic();
+        PrivateKey privateKey = keyPair.getPrivate();
+        byte[] pubKey = publicKey.getEncoded();
+        byte[] privKey = privateKey.getEncoded();
+        String result1 = new String(pubKey);
+        String result2 = new String(privKey);
+        return "Kyber Public Key:\n" + result1 + "\n\n" +
+                "Kyber Private Key:\n" + result2 + "\n";
+    }
+
+    private static void saveKeysToFile(SecretKeyWithEncapsulation key1, SecretKeyWithEncapsulation key2, String filePath) {
+        try {
+            File file = new File(filePath);
+            File parent = file.getParentFile();
+            if (!parent.exists() && !parent.mkdirs()) {
+                throw new IllegalStateException("Couldn't create directory: " + parent);
+            }
+            FileWriter writer = new FileWriter(file, true);
+            writer.write("Key 1:" + System.lineSeparator());
+            writer.write(Base64.getEncoder().encodeToString(key1.getEncoded()) + System.lineSeparator() + System.lineSeparator());
+            writer.write("Key 2:" + System.lineSeparator());
+            writer.write(Base64.getEncoder().encodeToString(key2.getEncoded()) + System.lineSeparator() + System.lineSeparator());
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
+    private static String getEncapKey(SecretKeyWithEncapsulation key1, SecretKeyWithEncapsulation key2) {
+        String key1BytesHex = bytesToHex(key1.getEncoded());
+        String key2BytesHex = bytesToHex(key2.getEncoded());
+        return "Bike Encapsulation 1 Key:\n" + key1BytesHex + "\n\n" +
+                "Bike Encapsulation 2 Key:\n" + key2BytesHex + "\n";
+    }
+
+    public static boolean verifyEncap(SecretKeyWithEncapsulation key1, SecretKeyWithEncapsulation key2) {
+        return org.bouncycastle.util.Arrays.areEqual(key1.getEncoded(), key2.getEncoded());
+    }
+
+    public static void saveVerificationResult(boolean verify, String filePath) {
+        String verificationText = verify ? "Encapsulation is valid" : "Encapsulation is not valid";
+        saveDataToFile(verificationText, filePath);
+    }
+
     public static void main(String[] args) throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
         // Creating files / folders
         String foldersPath = "Benchmark Results/Post-Quantum/Kyber Benchmarks/";
-        String k512FilePath = getFilePath(foldersPath, "Kyber-512/Keys.txt"); String k512SigFilePath = getFilePath(foldersPath, "Kyber-512/Signatures.txt"); String k512VerifyFilePath = getFilePath(foldersPath, "Kyber-512/VerifySignatures.txt");
-        String k512AesFilePath = getFilePath(foldersPath, "Kyber-512-Aes/Keys.txt"); String k512AesSigFilePath = getFilePath(foldersPath, "Kyber-512-Aes/Signatures.txt"); String k512AesVerifyFilePath = getFilePath(foldersPath, "Kyber-512-Aes/VerifySignatures.txt");
-        String k768FilePath = getFilePath(foldersPath, "Kyber-768/Keys.txt"); String k768SigFilePath = getFilePath(foldersPath, "Kyber-768/Signatures.txt"); String k768VerifyFilePath = getFilePath(foldersPath, "Kyber-768/VerifySignatures.txt");
-        String k768AesFilePath = getFilePath(foldersPath, "Kyber-768-Aes/Keys.txt"); String k768AesSigFilePath = getFilePath(foldersPath, "Kyber-768-Aes/Signatures.txt"); String k768AesVerifyFilePath = getFilePath(foldersPath, "Kyber-768-Quantum/Aes/VerifySignatures.txt");
-        String k1024FilePath = getFilePath(foldersPath, "Kyber-1024/Keys.txt"); String k1024SigFilePath = getFilePath(foldersPath, "Kyber-1024/Signatures.txt"); String k1024VerifyFilePath = getFilePath(foldersPath, "Kyber-1024/VerifySignatures.txt");
-        String k1024AesFilePath = getFilePath(foldersPath, "Kyber-1024-Aes/Keys.txt"); String k1024AesSigFilePath = getFilePath(foldersPath, "Kyber-1024-Aes/Signatures.txt"); String k1024AesVerifyFilePath = getFilePath(foldersPath, "Kyber-1024-Aes/VerifySignatures.txt");
+        // Creating Kyber-512 file locations
+        String k512FilePath = getFilePath(foldersPath, "Kyber-512/Encoded/Keys.txt"); String k512FilePathDecoded = getFilePath(foldersPath, "Kyber-512/Decoded/Decoded_Keys.txt");
+        String k512WrappedFilePath = getFilePath(foldersPath, "Kyber-512/Encoded/WrappedKey.txt"); String k512WrappedFilePathDecoded = getFilePath(foldersPath, "Kyber-512/Decoded/Decoded_WrappedKey.txt");
+        String k512VerifyFilePath = getFilePath(foldersPath, "Kyber-512/VerifyWrapping.txt");
+        String k512EncapFilePath = getFilePath(foldersPath, "Kyber-512/Encoded/Encapsulation_Keys.txt"); String k512EncapFilePathDecoded = getFilePath(foldersPath, "Kyber-512/Decoded/Decoded_Encapsulation_Keys.txt");
+        String k512VerifyEncapFilePath = getFilePath(foldersPath, "Kyber-512/VerifyEncapsulation.txt");
+        // Creating Kyber-512-AES file locations
+        String k512AesFilePath = getFilePath(foldersPath, "Kyber-512-Aes/Encoded/Keys.txt"); String k512AesFilePathDecoded = getFilePath(foldersPath, "Kyber-512-Aes/Decoded/Decoded_Keys.txt");
+        String k512AesWrappedFilePath = getFilePath(foldersPath, "Kyber-512-Aes/Encoded/WrappedKey.txt"); String k512AesWrappedFilePathDecoded = getFilePath(foldersPath, "Kyber-512-Aes/Decoded/Decoded_WrappedKey.txt");
+        String k512AesVerifyFilePath = getFilePath(foldersPath, "Kyber-512-Aes/VerifyWrapping.txt");
+        String k512AesEncapFilePath = getFilePath(foldersPath, "Kyber-512-Aes/Encoded/Encapsulation_Keys.txt"); String k512AesEncapFilePathDecoded = getFilePath(foldersPath, "Kyber-512-Aes/Decoded/Decoded_Encapsulation_Keys.txt");
+        String k512AesVerifyEncapFilePath = getFilePath(foldersPath, "Kyber-512-Aes/VerifyEncapsulation.txt");
+        // Creating Kyber-768 file locations
+        String k768FilePath = getFilePath(foldersPath, "Kyber-768/Encoded/Keys.txt"); String k768FilePathDecoded = getFilePath(foldersPath, "Kyber-768/Decoded/Decoded_Keys.txt");
+        String k768WrappedFilePath = getFilePath(foldersPath, "Kyber-768/Encoded/WrappedKey.txt"); String k768WrappedFilePathDecoded = getFilePath(foldersPath, "Kyber-768/Decoded/Decoded_WrappedKey.txt");
+        String k768VerifyFilePath = getFilePath(foldersPath, "Kyber-768/VerifyWrapping.txt");
+        String k768EncapFilePath = getFilePath(foldersPath, "Kyber-768/Encoded/Encapsulation_Keys.txt"); String k768EncapFilePathDecoded = getFilePath(foldersPath, "Kyber-768/Decoded/Decoded_Encapsulation_Keys.txt");
+        String k768VerifyEncapFilePath = getFilePath(foldersPath, "Kyber-768/VerifyEncapsulation.txt");
+        // Creating Kyber-768-AES file locations
+        String k768AesFilePath = getFilePath(foldersPath, "Kyber-768-Aes/Encoded/Keys.txt"); String k768AesFilePathDecoded = getFilePath(foldersPath, "Kyber-768-Aes/Decoded/Decoded_Keys.txt");
+        String k768AesWrappedFilePath = getFilePath(foldersPath, "Kyber-768-Aes/Encoded/WrappedKey.txt"); String k768AesWrappedFilePathDecoded = getFilePath(foldersPath, "Kyber-768-Aes/Decoded/Decoded_WrappedKey.txt");
+        String k768AesVerifyFilePath = getFilePath(foldersPath, "Kyber-768-Quantum/Aes/VerifyWrapping.txt");
+        String k768AesEncapFilePath = getFilePath(foldersPath, "Kyber-768-Aes/Encoded/Encapsulation_Keys.txt"); String k768AesEncapFilePathDecoded = getFilePath(foldersPath, "Kyber-768-Aes/Decoded/Decoded_Encapsulation_Keys.txt");
+        String k768AesVerifyEncapFilePath = getFilePath(foldersPath, "Kyber-768-Aes/VerifyEncapsulation.txt");
+        // Creating Kyber-1024 file locations
+        String k1024FilePath = getFilePath(foldersPath, "Kyber-1024/Encoded/Keys.txt"); String k1024FilePathDecoded = getFilePath(foldersPath, "Kyber-1024/Decoded/Decoded_Keys.txt");
+        String k1024WrappedFilePath = getFilePath(foldersPath, "Kyber-1024/Encoded/WrappedKey.txt"); String k1024WrappedFilePathDecoded = getFilePath(foldersPath, "Kyber-1024/Decoded/Decoded_WrappedKey.txt");
+        String k1024VerifyFilePath = getFilePath(foldersPath, "Kyber-1024/VerifyWrapping.txt");
+        String k1024EncapFilePath = getFilePath(foldersPath, "Kyber-1024/Encoded/Encapsulation_Keys.txt"); String k1024EncapFilePathDecoded = getFilePath(foldersPath, "Kyber-1024/Decoded/Decoded_Encapsulation_Keys.txt");
+        String k1024VerifyEncapFilePath = getFilePath(foldersPath, "Kyber-1024/VerifyEncapsulation.txt");
+        // Creating Kyber-1024-AES file locations
+        String k1024AesFilePath = getFilePath(foldersPath, "Kyber-1024-Aes/Encoded/Keys.txt"); String k1024AesFilePathDecoded = getFilePath(foldersPath, "Kyber-1024-Aes/Decoded/Decoded_Keys.txt");
+        String k1024AesWrappedFilePath = getFilePath(foldersPath, "Kyber-1024-Aes/Encoded/WrappedKey.txt"); String k1024AesWrappedFilePathDecoded = getFilePath(foldersPath, "Kyber-1024-Aes/Decoded/Decoded_WrappedKey.txt");
+        String k1024AesVerifyFilePath = getFilePath(foldersPath, "Kyber-1024-Aes/VerifyWrapping.txt");
+        String k1024AesEncapFilePath = getFilePath(foldersPath, "Kyber-1024-Aes/Encoded/Encapsulation_Keys.txt"); String k1024AesEncapFilePathDecoded = getFilePath(foldersPath, "Kyber-1024Aes/Decoded/Decoded_Encapsulation_Keys.txt");
+        String k1024AesVerifyEncapFilePath = getFilePath(foldersPath, "Kyber-1024-Aes/VerifyEncapsulation.txt");
         final byte[] k512KB = new byte[16]; final byte[] k768KB = new byte[24]; final byte[] k1024KB = new byte[32];
         for (int i = 0; i < 3; i++) {
             byte[] plaintext = new byte[2048];
+            new SecureRandom().nextBytes(plaintext);
             // Creating KPGs for key pairs
             k512KPG = KeyPairGenerator.getInstance(KyberParameterSpec.kyber512.getName(), "BCPQC"); k512KPG.initialize(KyberParameterSpec.kyber512, new SecureRandom());
             k512AesKPG = KeyPairGenerator.getInstance(KyberParameterSpec.kyber512_aes.getName(), "BCPQC"); k512AesKPG.initialize(KyberParameterSpec.kyber512_aes, new SecureRandom());
@@ -339,8 +486,13 @@ public class Kyber {
             KeyPair k512AesKP = k512AesKPG.generateKeyPair(); KeyPair k768AesKP = k768AesKPG.generateKeyPair(); KeyPair k1024AesKP = k1024AesKPG.generateKeyPair();
             String k512keysString = getKeysAsString(k512KP); String k768keysString = getKeysAsString(k768KP); String k1024keysString = getKeysAsString(k1024KP);
             String k512AeskeysString = getKeysAsString(k512AesKP); String k768AeskeysString = getKeysAsString(k768AesKP); String k1024AeskeysString = getKeysAsString(k1024AesKP);
-            saveDataToFile(k512keysString, k512FilePath); saveDataToFile(k768keysString, k768FilePath); saveDataToFile(k1024keysString, k1024FilePath);
-            saveDataToFile(k512AeskeysString, k512AesFilePath); saveDataToFile(k768AeskeysString, k768AesFilePath); saveDataToFile(k1024AeskeysString, k1024AesFilePath);
+            saveDataToFile(k512keysString, k512FilePathDecoded); saveDataToFile(k768keysString, k768FilePathDecoded); saveDataToFile(k1024keysString, k1024FilePathDecoded);
+            saveDataToFile(k512AeskeysString, k512AesFilePathDecoded); saveDataToFile(k768AeskeysString, k768AesFilePathDecoded); saveDataToFile(k1024AeskeysString, k1024AesFilePathDecoded);
+            // Encoded Key Pair
+            String k512EKP = getKeys(k512KP); String k768EKP = getKeys(k768KP); String k1024EKP = getKeys(k1024KP);
+            String k512AesEKP = getKeys(k512KP); String k768AesEKP = getKeys(k768KP); String k1024AesEKP = getKeys(k1024KP);
+            saveDataToFile(k512EKP, k512FilePath); saveDataToFile(k768EKP, k768FilePath); saveDataToFile(k1024EKP, k1024FilePath);
+            saveDataToFile(k512AesEKP, k512AesFilePath); saveDataToFile(k768AesEKP, k768AesFilePath); saveDataToFile(k1024AesEKP, k1024AesFilePath);
             // Creating ciphers
             Cipher k512Cipher = Cipher.getInstance(KyberParameterSpec.kyber512.getName(), "BCPQC"); Cipher k512AesCipher = Cipher.getInstance(KyberParameterSpec.kyber512_aes.getName(), "BCPQC");
             Cipher k768Cipher = Cipher.getInstance(KyberParameterSpec.kyber768.getName(), "BCPQC"); Cipher k768AesCipher = Cipher.getInstance(KyberParameterSpec.kyber768_aes.getName(), "BCPQC");
@@ -350,13 +502,50 @@ public class Kyber {
             byte[] wrappedK512AesKey = kyberWrapKey(k512AesKP, k512AesCipher, k512KB); byte[] wrappedK768AesKey = kyberWrapKey(k768AesKP, k768AesCipher, k768KB); byte[] wrappedK1024AesKey = kyberWrapKey(k1024AesKP, k1024AesCipher, k1024KB);
             String k512DecodedSignature = decodeSignature(wrappedK512Key); String k768DecodedSignature = decodeSignature(wrappedK768Key); String k1024DecodedSignature = decodeSignature(wrappedK1024Key);
             String k512AesDecodedSignature = decodeSignature(wrappedK512AesKey); String k768AesDecodedSignature = decodeSignature(wrappedK768AesKey); String k1024AesDecodedSignature = decodeSignature(wrappedK1024AesKey);
-            saveDataToFile(k512DecodedSignature, k512SigFilePath); saveDataToFile(k768DecodedSignature, k768SigFilePath); saveDataToFile(k1024DecodedSignature, k1024SigFilePath);
-            saveDataToFile(k512AesDecodedSignature, k512AesSigFilePath); saveDataToFile(k768AesDecodedSignature, k768AesSigFilePath); saveDataToFile(k1024AesDecodedSignature, k1024AesSigFilePath);
+            saveDataToFile(k512DecodedSignature, k512WrappedFilePath); saveDataToFile(k768DecodedSignature, k768WrappedFilePath); saveDataToFile(k1024DecodedSignature, k1024WrappedFilePath);
+            saveDataToFile(k512AesDecodedSignature, k512AesWrappedFilePathDecoded); saveDataToFile(k768AesDecodedSignature, k768AesWrappedFilePathDecoded); saveDataToFile(k1024AesDecodedSignature, k1024AesWrappedFilePathDecoded);
+            // Encoded wrapped key
+            writeBytesToFile(wrappedK512Key, k512WrappedFilePath); writeBytesToFile(wrappedK768Key, k768WrappedFilePath); writeBytesToFile(wrappedK1024Key, k1024WrappedFilePath);
+            writeBytesToFile(wrappedK512AesKey, k512AesWrappedFilePath); writeBytesToFile(wrappedK768AesKey, k768AesWrappedFilePath); writeBytesToFile(wrappedK1024AesKey, k1024AesWrappedFilePath);
             // Unwrapping Key
             Key unWrapped512Key = kyberUnwrapKey(k512KP, k512Cipher, wrappedK512Key); Key unWrapped768Key = kyberUnwrapKey(k768KP, k768Cipher, wrappedK768Key); Key unWrapped1024Key = kyberUnwrapKey(k1024KP, k1024Cipher, wrappedK1024Key);
             Key unWrapped512AesKey = kyberUnwrapKey(k512AesKP, k512AesCipher, wrappedK512AesKey); Key unWrapped768AesKey = kyberUnwrapKey(k768AesKP, k768AesCipher, wrappedK768AesKey); Key unWrapped1024AesKey = kyberUnwrapKey(k1024AesKP, k1024AesCipher, wrappedK1024AesKey);
             saveKeyComparisonResult(unWrapped512Key, k512KB, k512VerifyFilePath); saveKeyComparisonResult(unWrapped768Key, k768KB, k768VerifyFilePath); saveKeyComparisonResult(unWrapped1024Key, k1024KB, k1024VerifyFilePath);
             saveKeyComparisonResult(unWrapped512AesKey, k512KB, k512AesVerifyFilePath); saveKeyComparisonResult(unWrapped768AesKey, k768KB, k768AesVerifyFilePath); saveKeyComparisonResult(unWrapped1024AesKey, k1024KB, k1024AesVerifyFilePath);
+            // Encapsulation KP
+            KeyGenerator k512KeyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber512.getName(), "BCPQC"); k512KeyGen.init(new KEMGenerateSpec(k512KP.getPublic(), "AES"), new SecureRandom());
+            KeyGenerator k768KeyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber768.getName(), "BCPQC"); k768KeyGen.init(new KEMGenerateSpec(k768KP.getPublic(), "AES"), new SecureRandom());
+            KeyGenerator k1024KeyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber1024.getName(), "BCPQC"); k1024KeyGen.init(new KEMGenerateSpec(k1024KP.getPublic(), "AES"), new SecureRandom());
+            KeyGenerator k512AesKeyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber512_aes.getName(), "BCPQC"); k512AesKeyGen.init(new KEMGenerateSpec(k512AesKP.getPublic(), "AES"), new SecureRandom());
+            KeyGenerator k768AesKeyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber768_aes.getName(), "BCPQC"); k768AesKeyGen.init(new KEMGenerateSpec(k768AesKP.getPublic(), "AES"), new SecureRandom());
+            KeyGenerator k1024AesKeyGen = KeyGenerator.getInstance(KyberParameterSpec.kyber1024_aes.getName(), "BCPQC"); k1024AesKeyGen.init(new KEMGenerateSpec(k1024AesKP.getPublic(), "AES"), new SecureRandom());
+            // KPs
+            SecretKeyWithEncapsulation k512Enc1 = (SecretKeyWithEncapsulation)k512KeyGen.generateKey();
+            k512KeyGen.init(new KEMExtractSpec(k512KP.getPrivate(), k512Enc1.getEncapsulation(), "AES")); SecretKeyWithEncapsulation k512Enc2 = (SecretKeyWithEncapsulation)k512KeyGen.generateKey();
+            SecretKeyWithEncapsulation k768Enc1 = (SecretKeyWithEncapsulation)k768KeyGen.generateKey();
+            k768KeyGen.init(new KEMExtractSpec(k768KP.getPrivate(), k768Enc1.getEncapsulation(), "AES")); SecretKeyWithEncapsulation k768Enc2 = (SecretKeyWithEncapsulation)k768KeyGen.generateKey();
+            SecretKeyWithEncapsulation k1024Enc1 = (SecretKeyWithEncapsulation)k1024KeyGen.generateKey();
+            k1024KeyGen.init(new KEMExtractSpec(k1024KP.getPrivate(), k1024Enc1.getEncapsulation(), "AES")); SecretKeyWithEncapsulation k1024Enc2 = (SecretKeyWithEncapsulation)k1024KeyGen.generateKey();
+            // KPs aES
+            SecretKeyWithEncapsulation k512AesEnc1 = (SecretKeyWithEncapsulation)k512AesKeyGen.generateKey();
+            k512AesKeyGen.init(new KEMExtractSpec(k512AesKP.getPrivate(), k512AesEnc1.getEncapsulation(), "AES")); SecretKeyWithEncapsulation k512AesEnc2 = (SecretKeyWithEncapsulation)k512AesKeyGen.generateKey();
+            SecretKeyWithEncapsulation k768AesEnc1 = (SecretKeyWithEncapsulation)k768AesKeyGen.generateKey();
+            k768AesKeyGen.init(new KEMExtractSpec(k768AesKP.getPrivate(), k768AesEnc1.getEncapsulation(), "AES")); SecretKeyWithEncapsulation k768AesEnc2 = (SecretKeyWithEncapsulation)k768AesKeyGen.generateKey();
+            SecretKeyWithEncapsulation k1024AesEnc1 = (SecretKeyWithEncapsulation)k1024AesKeyGen.generateKey();
+            k1024AesKeyGen.init(new KEMExtractSpec(k1024AesKP.getPrivate(), k1024AesEnc1.getEncapsulation(), "AES")); SecretKeyWithEncapsulation k1024AesEnc2 = (SecretKeyWithEncapsulation)k1024AesKeyGen.generateKey();
+            // Decoded encapsulation keys
+            saveKeysToFile(k512Enc1, k512Enc2, k512EncapFilePathDecoded); saveKeysToFile(k768Enc1, k768Enc2, k768EncapFilePathDecoded); saveKeysToFile(k1024Enc1, k1024Enc2, k1024EncapFilePathDecoded);
+            saveKeysToFile(k512AesEnc1, k512AesEnc2, k512AesEncapFilePathDecoded); saveKeysToFile(k768AesEnc1, k768AesEnc2, k768AesEncapFilePathDecoded); saveKeysToFile(k1024AesEnc1, k1024AesEnc2, k1024AesEncapFilePathDecoded);
+            // Verify encapsulation keys
+            boolean k512Verify = verifyEncap(k512Enc1, k512Enc2); boolean k768Verify = verifyEncap(k768Enc1, k768Enc2); boolean k1024Verify = verifyEncap(k1024Enc1, k1024Enc2);
+            boolean k512AesVerify = verifyEncap(k512AesEnc1, k512AesEnc2); boolean k768AesVerify = verifyEncap(k768AesEnc1, k768AesEnc2); boolean k1024AesVerify = verifyEncap(k1024AesEnc1, k1024AesEnc2);
+            saveVerificationResult(k512Verify, k512VerifyEncapFilePath); saveVerificationResult(k768Verify, k768VerifyEncapFilePath); saveVerificationResult(k1024Verify, k1024VerifyEncapFilePath);
+            saveVerificationResult(k512AesVerify, k512AesVerifyEncapFilePath); saveVerificationResult(k768AesVerify, k768AesVerifyEncapFilePath); saveVerificationResult(k1024AesVerify, k1024AesVerifyEncapFilePath);
+            // Encoded encapsulation keys
+            String encap512 = getEncapKey(k512Enc1, k512Enc2); String encap768 = getEncapKey(k768Enc1, k768Enc2); String encap1024 = getEncapKey(k1024Enc1, k1024Enc2);
+            String encap512Aes = getEncapKey(k512AesEnc1, k512AesEnc2); String encap768Aes = getEncapKey(k768AesEnc1, k768AesEnc2); String encap1024Aes = getEncapKey(k1024AesEnc1, k1024AesEnc2);
+            saveDataToFile(encap512, k512EncapFilePath); saveDataToFile(encap768, k768EncapFilePath); saveDataToFile(encap1024, k1024EncapFilePath);
+            saveDataToFile(encap512Aes, k512AesEncapFilePath); saveDataToFile(encap768Aes, k768AesEncapFilePath); saveDataToFile(encap1024Aes, k1024AesEncapFilePath);
         }
 
     }

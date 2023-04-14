@@ -2,7 +2,7 @@ package Pre_Quantum;
 // ********************** \\
 // * Section 1: Imports * \\
 // ********************** \\
-import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.crypto.digests.SHA3Digest;
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.signers.ECDSASigner;
@@ -15,6 +15,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.*;
+import java.security.spec.ECGenParameterSpec;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Random;
@@ -29,20 +30,17 @@ import java.util.concurrent.TimeUnit;
 @Threads(value=Threads.MAX)
 @Fork(1)
 @State(Scope.Benchmark)
-public class SHA256_ECDSA {
+public class Sha3 {
     // ************************ \\
     // * Section 3: Variables * \\
     // ************************ \\
-    private static byte[] plaintext;
-    private static KeyPairGenerator kpg;
-    private static ECPublicKeyParameters publicKeyParameters;
-    private static ECPrivateKeyParameters privateKeyParameters;
-    private static ECDSASigner signer;
-    private static ECDSASigner verifier;
-    private static byte[] hash;
-    private static byte[] output;
-    private static BigInteger[] hashSigned;
+    private static ECDSASigner signer; private static ECDSASigner verifier;
 
+    private static ECPublicKeyParameters publicKeyParameters; private static ECPrivateKeyParameters privateKeyParameters;
+
+    private static byte[] sha3Hash; private static BigInteger[] sha3Sig;
+
+    private static byte[] plaintext;
     // ************************* \\
     // * Section 4: Parameters * \\
     // ************************* \\
@@ -51,74 +49,74 @@ public class SHA256_ECDSA {
 
     @Param({"secp256r1", "secp256k1", "brainpoolP256r1"})
     static String ecName;
-    // ************************ \\
-    // * Section 5: Setup     * \\
-    // ************************ \\
+    // ******************** \\
+    // * Section 5: Setup * \\
+    // ******************** \\
     @Setup
     public void setup() throws Exception {
-        // Selecting BouncyCastle provider
         Security.addProvider(new BouncyCastleProvider());
-        // Creating data of size corresponding to size parameters.
+        // Generate some random data to hash
         plaintext = new byte[plaintextSize];
         new SecureRandom().nextBytes(plaintext);
-        // Key generation
-        kpg = KeyPairGenerator.getInstance("ECDSA", "BC");
-        kpg.initialize(new ECNamedCurveGenParameterSpec(ecName), new SecureRandom()); // Elliptic curve pairing
-        KeyPair kp = keyGeneration();
+        // Creating keypair
+        KeyPair sha3KP = sha3KeyGeneration();
+        // Creating signer instances
         signer = new ECDSASigner(); verifier = new ECDSASigner();
-        // Getting public / private keys from keypair
-        publicKeyParameters = (ECPublicKeyParameters) ECUtil.generatePublicKeyParameter(kp.getPublic());
-        privateKeyParameters = (ECPrivateKeyParameters) ECUtil.generatePrivateKeyParameter(kp.getPrivate());
+        // Getting key parameters
+        privateKeyParameters = (ECPrivateKeyParameters) ECUtil.generatePrivateKeyParameter(sha3KP.getPrivate());
+        publicKeyParameters = (ECPublicKeyParameters) ECUtil.generatePublicKeyParameter(sha3KP.getPublic());
 
-        hash = sha256Hashing(); hashSigned = ecdsaSign();
+        sha3Hash = sha3Hashing(); sha3Sig = sha3Sign();
     }
-    // ************************** \\
-    // * Section 6: SHA-256     * \\
-    // ************************** \\
+    // ******************** \\
+    // * Section 6: Sha 3 * \\
+    // ******************** \\
     @Benchmark
-    public static KeyPair keyGeneration() {
-        return kpg.generateKeyPair();
+    public static KeyPair sha3KeyGeneration() throws Exception {
+        KeyPairGenerator sha3KPG = KeyPairGenerator.getInstance("ECDSA", "BC");
+        ECGenParameterSpec ecSpec = new ECGenParameterSpec(ecName);
+        sha3KPG.initialize(ecSpec, new SecureRandom());
+        return  sha3KPG.generateKeyPair();
+    }
+    @Benchmark
+    public static byte[] sha3Hashing() {
+        SHA3Digest sha3 = new SHA3Digest(512);
+        sha3.update(plaintext, 0, plaintext.length);
+        byte[] hash = new byte[sha3.getDigestSize()];
+        sha3.doFinal(hash, 0);
+        return hash;
     }
 
     @Benchmark
-    public byte[] sha256Hashing() {
-        SHA256Digest digest = new SHA256Digest();
-        digest.update(plaintext, 0, plaintext.length);
-        output = new byte[digest.getDigestSize()];
-        digest.doFinal(output, 0);
-        return output;
-    }
-
-    @Benchmark
-    public static BigInteger[] ecdsaSign() {
+    public static BigInteger[] sha3Sign() {
         signer.init(true, privateKeyParameters);
-        return signer.generateSignature(hash);
+        return signer.generateSignature(sha3Hash);
     }
 
     @Benchmark
-    public static boolean ecdsaVerify() {
+    public static boolean sha3Verify() {
         verifier.init(false, publicKeyParameters);
-        return verifier.verifySignature(hash, hashSigned[0], hashSigned[1]); // This takes 2 signature inputs as the BigInteger signing has an 'r' and 's' component
+        return verifier.verifySignature(sha3Hash, sha3Sig[0], sha3Sig[1]); // This takes 2 signature inputs as the BigInteger signing has an 'r' and 's' component
     }
     // ************************************************************* \\
     // * Section 7: Printing Out Keys, Signatures and Verification * \\
     // ************************************************************* \\
-    public static byte[] sha256Digest(byte[] plaintext) {
-        SHA256Digest digest = new SHA256Digest();
+    public static byte[] sha3Digest(byte[] plaintext) {
+        SHA3Digest digest = new SHA3Digest(512);
         digest.update(plaintext, 0, plaintext.length);
         byte[] output = new byte[digest.getDigestSize()];
         digest.doFinal(output, 0);
         return output;
     }
 
-    public static BigInteger[] sha256Sign(byte[] digest, ECPrivateKeyParameters privateKeyParameters) {
+    public static BigInteger[] sha3Sign(byte[] digest, ECPrivateKeyParameters privateKeyParameters) {
         ECDSASigner signer = new ECDSASigner();
         signer.init(true, privateKeyParameters);
         signer.generateSignature(digest);
         return signer.generateSignature(digest);
     }
 
-    public static Boolean sha256Verify(byte[] digest, BigInteger[] hash, ECPublicKeyParameters publicKeyParameters) {
+    public static Boolean sha3Verify(byte[] digest, BigInteger[] hash, ECPublicKeyParameters publicKeyParameters) {
         ECDSASigner verifier = new ECDSASigner();
         verifier.init(false, publicKeyParameters);
         return verifier.verifySignature(digest, hash[0], hash[1]);
@@ -179,12 +177,12 @@ public class SHA256_ECDSA {
         // Selecting BouncyCastle provider
         Security.addProvider(new BouncyCastleProvider());
         // FIle locations
-        String folderPath = "Benchmark Results/Pre-Quantum/SHA256-EC Benchmarks/";
-        String plaintextFile = getFilePath(folderPath, "SHA256-EC/Plaintext.txt");
-        String r1FilePath = getFilePath(folderPath, "SHA256-EC/SECP256R1/Keys.txt"); String k1FilePath = getFilePath(folderPath, "SHA256-EC/SECP256K1/Keys.txt"); String bpFilePath = getFilePath(folderPath, "SHA256-EC/BRAINPOOLP256R1/Keys.txt");
-        String r1DigestFilePath = getFilePath(folderPath, "SHA256-EC/SECP256R1/Digest.txt"); String k1DigestFilePath = getFilePath(folderPath, "SHA256-EC/SECP256K1/Digest.txt"); String bpDigestFilePath = getFilePath(folderPath, "SHA256-EC/BRAINPOOLP256R1/Digest.txt");
-        String r1SignaturesFilePath = getFilePath(folderPath, "SHA256-EC/SECP256R1/Signatures.txt"); String k1SignaturesFilePath = getFilePath(folderPath, "SHA256-EC/SECP256K1/Signatures.txt"); String bpSignaturesFilePath = getFilePath(folderPath, "SHA256-EC/BRAINPOOLP256R1/Signatures.txt");
-        String r1VerifyFilePath = getFilePath(folderPath, "SHA256-EC/SECP256R1/VerifySignatures.txt"); String k1VerifyFilePath = getFilePath(folderPath, "SHA256-EC/SECP256K1/VerifySignatures.txt"); String bpVerifyFilePath = getFilePath(folderPath, "SHA256-EC/BRAINPOOLP256R1/VerifySignatures.txt");
+        String folderPath = "Benchmark Results/Pre-Quantum/SHA3-EC Benchmarks/";
+        String plaintextFile = getFilePath(folderPath, "SHA3-EC/Plaintext.txt");
+        String r1FilePath = getFilePath(folderPath, "SHA3-EC/SECP256R1/Keys.txt"); String k1FilePath = getFilePath(folderPath, "SHA3-EC/SECP256K1/Keys.txt"); String bpFilePath = getFilePath(folderPath, "SHA3-EC/BRAINPOOLP256R1/Keys.txt");
+        String r1DigestFilePath = getFilePath(folderPath, "SHA3-EC/SECP256R1/Digest.txt"); String k1DigestFilePath = getFilePath(folderPath, "SHA3-EC/SECP256K1/Digest.txt"); String bpDigestFilePath = getFilePath(folderPath, "SHA3-EC/BRAINPOOLP256R1/Digest.txt");
+        String r1SignaturesFilePath = getFilePath(folderPath, "SHA3-EC/SECP256R1/Signatures.txt"); String k1SignaturesFilePath = getFilePath(folderPath, "SHA3-EC/SECP256K1/Signatures.txt"); String bpSignaturesFilePath = getFilePath(folderPath, "SHA3-EC/BRAINPOOLP256R1/Signatures.txt");
+        String r1VerifyFilePath = getFilePath(folderPath, "SHA3-EC/SECP256R1/VerifySignatures.txt"); String k1VerifyFilePath = getFilePath(folderPath, "SHA3-EC/SECP256K1/VerifySignatures.txt"); String bpVerifyFilePath = getFilePath(folderPath, "SHA3-EC/BRAINPOOLP256R1/VerifySignatures.txt");
         for (int i = 0; i < 3; i++) {
             byte[] plaintext = new byte[2048];
             new Random().nextBytes(plaintext);
@@ -199,18 +197,18 @@ public class SHA256_ECDSA {
             String r1KeysString = getKeysAsString(r1KeyPair); String k1KeysString = getKeysAsString(k1KeyPair); String bpKeysString = getKeysAsString(bpKeyPair);
             saveDataToFile(r1KeysString, r1FilePath); saveDataToFile(k1KeysString, k1FilePath); saveDataToFile(bpKeysString, bpFilePath);
             // Creating digests
-            byte[] r1Digest = sha256Digest(plaintext); byte[] k1Digest = sha256Digest(plaintext); byte[] bpDigest = sha256Digest(plaintext);
+            byte[] r1Digest = sha3Digest(plaintext); byte[] k1Digest = sha3Digest(plaintext); byte[] bpDigest = sha3Digest(plaintext);
             String r1HashHexString = byteArrayToHexString(r1Digest); String k1HashHexString = byteArrayToHexString(k1Digest); String bpHashHexString = byteArrayToHexString(bpDigest);
             saveDataToFile(r1HashHexString, r1DigestFilePath); saveDataToFile(k1HashHexString, k1DigestFilePath); saveDataToFile(bpHashHexString, bpDigestFilePath);
             ECPublicKeyParameters r1PublicKeyParameters = (ECPublicKeyParameters) ECUtil.generatePublicKeyParameter(r1KeyPair.getPublic()); ECPrivateKeyParameters r1PrivateKeyParameters = (ECPrivateKeyParameters) ECUtil.generatePrivateKeyParameter(r1KeyPair.getPrivate());
             ECPublicKeyParameters k1PublicKeyParameters = (ECPublicKeyParameters) ECUtil.generatePublicKeyParameter(k1KeyPair.getPublic()); ECPrivateKeyParameters k1PrivateKeyParameters = (ECPrivateKeyParameters) ECUtil.generatePrivateKeyParameter(k1KeyPair.getPrivate());
             ECPublicKeyParameters bpPublicKeyParameters = (ECPublicKeyParameters) ECUtil.generatePublicKeyParameter(bpKeyPair.getPublic()); ECPrivateKeyParameters bpPrivateKeyParameters = (ECPrivateKeyParameters) ECUtil.generatePrivateKeyParameter(bpKeyPair.getPrivate());
             // Creating signatures
-            BigInteger[] r1Hash = sha256Sign(r1Digest, r1PrivateKeyParameters); BigInteger[] k1Hash = sha256Sign(k1Digest, k1PrivateKeyParameters); BigInteger[] bpHash = sha256Sign(bpDigest, bpPrivateKeyParameters);
+            BigInteger[] r1Hash = sha3Sign(r1Digest, r1PrivateKeyParameters); BigInteger[] k1Hash = sha3Sign(k1Digest, k1PrivateKeyParameters); BigInteger[] bpHash = sha3Sign(bpDigest, bpPrivateKeyParameters);
             String r1DecodedSignature = decodeSignature(r1Hash); String k1DecodedSignature = decodeSignature(k1Hash); String bpDecodedSignature = decodeSignature(bpHash);
             saveDataToFile(r1DecodedSignature, r1SignaturesFilePath); saveDataToFile(k1DecodedSignature, k1SignaturesFilePath); saveDataToFile(bpDecodedSignature, bpSignaturesFilePath);
             // Verifying signatures
-            Boolean r1Verify = sha256Verify(r1Digest, r1Hash, r1PublicKeyParameters); Boolean k1Verify = sha256Verify(k1Digest, k1Hash, k1PublicKeyParameters); Boolean bpVerify = sha256Verify(bpDigest, bpHash, bpPublicKeyParameters);
+            Boolean r1Verify = sha3Verify(r1Digest, r1Hash, r1PublicKeyParameters); Boolean k1Verify = sha3Verify(k1Digest, k1Hash, k1PublicKeyParameters); Boolean bpVerify = sha3Verify(bpDigest, bpHash, bpPublicKeyParameters);
             saveVerificationResult(r1Verify, r1VerifyFilePath); saveVerificationResult(k1Verify, k1VerifyFilePath); saveVerificationResult(bpVerify, bpVerifyFilePath);
         }
     }

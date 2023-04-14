@@ -4,15 +4,8 @@ package Post_Quantum;
 // ********************** \\
 import org.bouncycastle.pqc.jcajce.interfaces.RainbowKey;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
-import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
 import org.bouncycastle.pqc.jcajce.spec.RainbowParameterSpec;
 import org.openjdk.jmh.annotations.*;
-import org.openjdk.jmh.results.format.ResultFormatType;
-import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.RunnerException;
-import org.openjdk.jmh.runner.options.Options;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
-
 import java.io.*;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -58,16 +51,18 @@ public class Rainbow {
     public void setup() throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
         plaintext = new byte[plaintextSize];
+        new SecureRandom().nextBytes(plaintext);
+        // Creating KPGs
         r3ClassicKPG = KeyPairGenerator.getInstance("Rainbow", "BCPQC"); r3ClassicKPG.initialize(RainbowParameterSpec.rainbowIIIclassic, new SecureRandom());
         r3CircumKPG = KeyPairGenerator.getInstance("Rainbow", "BCPQC"); r3CircumKPG.initialize(RainbowParameterSpec.rainbowIIIcircumzenithal, new SecureRandom());
         r3CompKPG = KeyPairGenerator.getInstance("Rainbow", "BCPQC"); r3CompKPG.initialize(RainbowParameterSpec.rainbowIIIcompressed, new SecureRandom());
         r5ClassicKPG = KeyPairGenerator.getInstance("Rainbow", "BCPQC"); r5ClassicKPG.initialize(RainbowParameterSpec.rainbowVclassic, new SecureRandom());
         r5CircumKPG = KeyPairGenerator.getInstance("Rainbow", "BCPQC"); r5CircumKPG.initialize(RainbowParameterSpec.rainbowVcircumzenithal, new SecureRandom());
         r5CompKPG = KeyPairGenerator.getInstance("Rainbow", "BCPQC"); r5CompKPG.initialize(RainbowParameterSpec.rainbowVcompressed, new SecureRandom());
-
+        // Creating KPs
         r3ClassicKP = r3ClassicKeyGeneration(); r3CircumKP = r3CircumKeyGeneration(); r3CompKP = r3CompKeyGeneration();
         r5ClassicKP = r5ClassicKeyGeneration(); r5CircumKP = r5CircumKeyGeneration(); r5CompKP = r5CompKeyGeneration();
-
+        // Creating signatures
         r3ClassicSig = Signature.getInstance("Rainbow", "BCPQC");
         r3CircumSig = Signature.getInstance("Rainbow", "BCPQC");
         r3CompSig = Signature.getInstance("Rainbow", "BCPQC");
@@ -468,6 +463,7 @@ public class Rainbow {
         String r5CompFilePath = getFilePath(foldersPath, "Rainbow-V-Compressed/Keys.txt"); String r5CompSigFilePath = getFilePath(foldersPath, "Rainbow-V-Compressed/Signatures.txt"); String r5CompVerifyFilePath = getFilePath(foldersPath, "Rainbow-V-Compressed/VerifySignatures.txt");
         for (int i = 0; i < 3; i++) {
             byte[] plaintext = new byte[2048];
+            new SecureRandom().nextBytes(plaintext);
             // Creating KPGs for key pairs
             KeyPairGenerator r3ClassicKPG = KeyPairGenerator.getInstance("RAINBOW", "BCPQC"); r3ClassicKPG.initialize(RainbowParameterSpec.rainbowIIIclassic, new SecureRandom());
             KeyPairGenerator r3CircumKPG = KeyPairGenerator.getInstance("RAINBOW", "BCPQC"); r3CircumKPG.initialize(RainbowParameterSpec.rainbowIIIcircumzenithal, new SecureRandom());
@@ -490,8 +486,8 @@ public class Rainbow {
             saveDataToFile(r3ClassicDecodedSignature, r3ClassicSigFilePath); saveDataToFile(r3CircumDecodedSignature, r3CCircumSigFilePath); saveDataToFile(r3CompDecodedSignature, r3CompSigFilePath);
             saveDataToFile(r5ClassicDecodedSignature, r5ClassicSigFilePath); saveDataToFile(r5CircumDecodedSignature, r5CircumSigFilePath); saveDataToFile(r5CompDecodedSignature, r5CompSigFilePath);
             // Verifying signatures
-            Boolean r3ClassicVerify = rainbowVerify(r3ClassicKP, plaintext, r3ClassicSig); Boolean r3CircumVerify = rainbowVerify(r3CircumKP, plaintext, r3CircumSig); Boolean r3CompVerify = rainbowVerify(r3CompKP, plaintext, r3CompSig);
-            Boolean r5ClassicVerify = rainbowVerify(r5ClassicKP, plaintext, r5ClassicSig); Boolean r5CircumVerify = rainbowVerify(r5CircumKP, plaintext, r5CircumSig); Boolean r5CompVerify = rainbowVerify(r5CompKP, plaintext, r5CompSig);
+            boolean r3ClassicVerify = rainbowVerify(r3ClassicKP, plaintext, r3ClassicSig); boolean r3CircumVerify = rainbowVerify(r3CircumKP, plaintext, r3CircumSig); boolean r3CompVerify = rainbowVerify(r3CompKP, plaintext, r3CompSig);
+            boolean r5ClassicVerify = rainbowVerify(r5ClassicKP, plaintext, r5ClassicSig); boolean r5CircumVerify = rainbowVerify(r5CircumKP, plaintext, r5CircumSig); boolean r5CompVerify = rainbowVerify(r5CompKP, plaintext, r5CompSig);
             saveVerificationResult(r3ClassicVerify, r3ClassicVerifyFilePath); saveVerificationResult(r3CircumVerify, r3CircumVerifyFilePath); saveVerificationResult(r3CompVerify, r3CompVerifyFilePath);
             saveVerificationResult(r5ClassicVerify, r5ClassicVerifyFilePath); saveVerificationResult(r5CircumVerify, r5CircumVerifyFilePath); saveVerificationResult(r5CompVerify, r5CompVerifyFilePath);
         }

@@ -22,11 +22,9 @@ import java.util.concurrent.TimeUnit;
 @Fork(3)
 @State(Scope.Benchmark)
 public class Picnic {
-
     // ************************ \\
     // * Section 3: Variables * \\
     // ************************ \\
-
     private KeyPair l1fsKP; private KeyPair l3fsKP; private KeyPair l5fsKP;
     private KeyPair l1fullKP; private KeyPair l3fullKP; private KeyPair l5fullKP;
 
@@ -55,6 +53,7 @@ public class Picnic {
         Security.addProvider(new BouncyCastlePQCProvider());
         SecureRandom random = new SecureRandom();
         plaintext = new byte[plaintextSize];
+        new SecureRandom().nextBytes(plaintext);
         // Creating signature of the current algorithm parameter
         l1fsSig = Signature.getInstance(algorithm, "BCPQC");
         l3fsSig = l1fsSig; l5fsSig = l1fsSig; l1fullSig = l1fsSig; l3fullSig = l1fsSig; l5fullSig = l1fsSig;
@@ -331,6 +330,7 @@ public class Picnic {
         String l5fullSigFileShake256 = getFilePath(foldersPath, "SHAKE-256-WITH-PICNIC/Picnic-L5FULL/Signatures.txt"); String l5fullVerifyFileShake256 = getFilePath(foldersPath, "SHAKE-256-WITH-PICNIC/Picnic-L5FULL/VerifySignatures.txt");
         for (int i = 0; i < 3; i++) {
             byte[] plaintext = new byte[2048];
+            new SecureRandom().nextBytes(plaintext);
             // Creating signatures
             KeyPairGenerator l1fsKPG = KeyPairGenerator.getInstance("PICNIC", "BCPQC"); l1fsKPG.initialize(PicnicParameterSpec.picnicl1fs, new SecureRandom());
             KeyPairGenerator l3fsKPG = KeyPairGenerator.getInstance("PICNIC", "BCPQC"); l3fsKPG.initialize(PicnicParameterSpec.picnicl3fs, new SecureRandom());
@@ -374,23 +374,23 @@ public class Picnic {
             saveDataToFile(l1fsDecodedSignatureShake256, l1fsSigFileShake256); saveDataToFile(l3fsDecodedSignatureShake256, l3fsSigFileShake256); saveDataToFile(l5fsDecodedSignatureShake256, l5fsSigFileShake256);
             saveDataToFile(l1fullDecodedSignatureShake256, l1fullSigFileShake256); saveDataToFile(l3fullDecodedSignatureShake256, l3fullSigFileShake256); saveDataToFile(l5fullDecodedSignatureShake256, l5fullSigFileShake256);
             // Verifying PICNIC signatures
-            Boolean l1fsPicnicVerify = picnicVerify(l1fsKP, l1fsSigPicnic, plaintext); Boolean l3fsPicnicVerify = picnicVerify(l3fsKP, l3fsSigPicnic, plaintext); Boolean l5fsPicnicVerify = picnicVerify(l5fsKP, l5fsSigPicnic, plaintext);
-            Boolean l1fullPicnicVerify = picnicVerify(l1fullKP, l1fullSigPicnic, plaintext); Boolean l3fullPicnicVerify = picnicVerify(l3fullKP, l3fullSigPicnic, plaintext); Boolean l5fullPicnicVerify = picnicVerify(l5fullKP, l5fullSigPicnic, plaintext);
+            boolean l1fsPicnicVerify = picnicVerify(l1fsKP, l1fsSigPicnic, plaintext); boolean l3fsPicnicVerify = picnicVerify(l3fsKP, l3fsSigPicnic, plaintext); boolean l5fsPicnicVerify = picnicVerify(l5fsKP, l5fsSigPicnic, plaintext);
+            boolean l1fullPicnicVerify = picnicVerify(l1fullKP, l1fullSigPicnic, plaintext); boolean l3fullPicnicVerify = picnicVerify(l3fullKP, l3fullSigPicnic, plaintext); boolean l5fullPicnicVerify = picnicVerify(l5fullKP, l5fullSigPicnic, plaintext);
             saveVerificationResult(l1fsPicnicVerify, l1fsVerifyFilePicnic); saveVerificationResult(l3fsPicnicVerify, l3fsVerifyFilePicnic); saveVerificationResult(l5fsPicnicVerify, l5fsVerifyFilePicnic);
             saveVerificationResult(l1fullPicnicVerify, l1fullVerifyFilePicnic); saveVerificationResult(l3fullPicnicVerify, l3fullVerifyFilePicnic); saveVerificationResult(l5fullPicnicVerify, l5fullVerifyFilePicnic);
             // Verifying SHA3-512WITHPICNIC signatures
-            Boolean l1fsSha3Verify = sha3Verify(l1fsKP, l1fsSigSha3, plaintext); Boolean l3fsSha3Verify = sha3Verify(l3fsKP, l3fsSigSha3, plaintext); Boolean l5fsSha3Verify = sha3Verify(l5fsKP, l5fsSigSha3, plaintext);
-            Boolean l1fullSha3Verify = sha3Verify(l1fullKP, l1fullSigSha3, plaintext); Boolean l3fullSha3Verify = sha3Verify(l3fullKP, l3fullSigSha3, plaintext); Boolean l5fullSha3Verify = sha3Verify(l5fullKP, l5fullSigSha3, plaintext);
+            boolean l1fsSha3Verify = sha3Verify(l1fsKP, l1fsSigSha3, plaintext); boolean l3fsSha3Verify = sha3Verify(l3fsKP, l3fsSigSha3, plaintext); boolean l5fsSha3Verify = sha3Verify(l5fsKP, l5fsSigSha3, plaintext);
+            boolean l1fullSha3Verify = sha3Verify(l1fullKP, l1fullSigSha3, plaintext); boolean l3fullSha3Verify = sha3Verify(l3fullKP, l3fullSigSha3, plaintext); boolean l5fullSha3Verify = sha3Verify(l5fullKP, l5fullSigSha3, plaintext);
             saveVerificationResult(l1fsSha3Verify, l1fsVerifyFileSha3); saveVerificationResult(l3fsSha3Verify, l3fsVerifyFileSha3); saveVerificationResult(l5fsSha3Verify, l5fsVerifyFileSha3);
             saveVerificationResult(l1fullSha3Verify, l1fullVerifyFileSha3); saveVerificationResult(l3fullSha3Verify, l3fullVerifyFileSha3); saveVerificationResult(l5fullSha3Verify, l5fullVerifyFileSha3);
             // Verifying SHA512WITHPICNIC signatures
-            Boolean l1fsSha512Verify = sha512Verify(l1fsKP, l1fsSigSha512, plaintext); Boolean l3fsSha512Verify = sha512Verify(l3fsKP, l3fsSigSha512, plaintext); Boolean l5fsSha512Verify = sha512Verify(l5fsKP, l5fsSigSha512, plaintext);
-            Boolean l1fullSha512Verify = sha512Verify(l1fullKP, l1fullSigSha512, plaintext); Boolean l3fullSha512Verify = sha512Verify(l3fullKP, l3fullSigSha512, plaintext); Boolean l5fullSha512Verify = sha512Verify(l5fullKP, l5fullSigSha512, plaintext);
+            boolean l1fsSha512Verify = sha512Verify(l1fsKP, l1fsSigSha512, plaintext); boolean l3fsSha512Verify = sha512Verify(l3fsKP, l3fsSigSha512, plaintext); boolean l5fsSha512Verify = sha512Verify(l5fsKP, l5fsSigSha512, plaintext);
+            boolean l1fullSha512Verify = sha512Verify(l1fullKP, l1fullSigSha512, plaintext); boolean l3fullSha512Verify = sha512Verify(l3fullKP, l3fullSigSha512, plaintext); boolean l5fullSha512Verify = sha512Verify(l5fullKP, l5fullSigSha512, plaintext);
             saveVerificationResult(l1fsSha512Verify, l1fsVerifyFileSha512); saveVerificationResult(l3fsSha512Verify, l3fsVerifyFileSha512); saveVerificationResult(l5fsSha512Verify, l5fsVerifyFileSha512);
             saveVerificationResult(l1fullSha512Verify, l1fullVerifyFileSha512); saveVerificationResult(l3fullSha512Verify, l3fullVerifyFileSha512); saveVerificationResult(l5fullSha512Verify, l5fullVerifyFileSha512);
             // Verifying SHAKE256WITHPICNIC signatures
-            Boolean l1fsShake256Verify = shake256Verify(l1fsKP, l1fsSigShake256, plaintext); Boolean l3fsShake256Verify = shake256Verify(l3fsKP, l3fsSigShake256, plaintext); Boolean l5fsShake256Verify = shake256Verify(l5fsKP, l5fsSigShake256, plaintext);
-            Boolean l1fullShake256Verify = shake256Verify(l1fullKP, l1fullSigShake256, plaintext); Boolean l3fullShake256Verify = shake256Verify(l3fullKP, l3fullSigShake256, plaintext); Boolean l5fullShake256Verify = shake256Verify(l5fullKP, l5fullSigShake256, plaintext);
+            boolean l1fsShake256Verify = shake256Verify(l1fsKP, l1fsSigShake256, plaintext); boolean l3fsShake256Verify = shake256Verify(l3fsKP, l3fsSigShake256, plaintext); boolean l5fsShake256Verify = shake256Verify(l5fsKP, l5fsSigShake256, plaintext);
+            boolean l1fullShake256Verify = shake256Verify(l1fullKP, l1fullSigShake256, plaintext); boolean l3fullShake256Verify = shake256Verify(l3fullKP, l3fullSigShake256, plaintext); boolean l5fullShake256Verify = shake256Verify(l5fullKP, l5fullSigShake256, plaintext);
             saveVerificationResult(l1fsShake256Verify, l1fsVerifyFileShake256); saveVerificationResult(l3fsShake256Verify, l3fsVerifyFileShake256); saveVerificationResult(l5fsShake256Verify, l5fsVerifyFileShake256);
             saveVerificationResult(l1fullShake256Verify, l1fullVerifyFileShake256); saveVerificationResult(l3fullShake256Verify, l3fullVerifyFileShake256); saveVerificationResult(l5fullShake256Verify, l5fullVerifyFileShake256);
         }

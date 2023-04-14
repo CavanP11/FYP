@@ -30,13 +30,14 @@ public class AES_CTR {
     // ************************ \\
     // * Section 3: Variables * \\
     // ************************ \\
-    private static byte[] iv;
 
     private static BufferedBlockCipher encryptCipher;
     private static BufferedBlockCipher decryptCipher;
 
     private static int encryptOutputLength; private static int decryptOutputLength;
     private static byte[] encryptOutput; private static byte[] decryptOutput;
+
+    private static byte[] plaintext;
     // ************************* \\
     // * Section 4: Parameters * \\
     // ************************* \\
@@ -53,11 +54,11 @@ public class AES_CTR {
         byte[] key = keyGeneration();
         SecureRandom random = new SecureRandom();
         // Creating plaintext
-        byte[] plaintext = new byte[plaintextSize];
-        random.nextBytes(plaintext);
+        plaintext = new byte[plaintextSize];
+        new SecureRandom().nextBytes(plaintext);
         // Creating IV
         byte[] iv = new byte[16]; // 128-bit
-        random.nextBytes(iv);
+        new SecureRandom().nextBytes(iv);
         // Creating block cipher to covert to stream cipher
         CipherParameters cipherParams = new ParametersWithIV(new KeyParameter(key), iv);
         AESEngine aesEngine = new AESEngine();
@@ -180,7 +181,7 @@ public class AES_CTR {
             // Random plaintext and IV
             SecureRandom random = new SecureRandom();
             byte[] plaintext = new byte[2048]; byte[] iv = new byte[16];
-            random.nextBytes(plaintext); random.nextBytes(iv);
+            new SecureRandom().nextBytes(plaintext); new SecureRandom().nextBytes(iv);
             String decodedPlaintext = decodePlaintext(plaintext);
             saveDataToFile(decodedPlaintext, plaintextFilePath);
             // Creating AES key

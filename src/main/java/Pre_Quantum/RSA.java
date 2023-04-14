@@ -55,9 +55,8 @@ public class RSA {
     @Setup
     public void setup() throws Exception {
         // Generating a random plaintext
-        SecureRandom random = new SecureRandom();
         plaintext = new byte[plaintextSize];
-        random.nextBytes(plaintext);
+        new SecureRandom().nextBytes(plaintext);
         // Generate KP for engines
         aKP = generateKey();
         // Getting ready for encryption
@@ -202,6 +201,7 @@ public class RSA {
         for (int i = 0; i < 3; i++) {
             // Random plaintext
             byte[] plaintext = new byte[117];
+            new SecureRandom().nextBytes(plaintext);
             SecureRandom random = new SecureRandom();
             random.nextBytes(plaintext);
             String decodedPlaintext = decodePlaintext(plaintext);
@@ -228,7 +228,7 @@ public class RSA {
             String rsa1024DecodeSignedCiphertext = decodeEncryptedSign(rsa1024SignedCiphertext); String rsa2048DecodeSignedCiphertext = decodeEncryptedSign(rsa2048SignedCiphertext); String rsa4096DecodeSignedCiphertext = decodeEncryptedSign(rsa4096SignedCiphertext);
             saveDataToFile(rsa1024DecodeSignedCiphertext, sig1024FilePath); saveDataToFile(rsa2048DecodeSignedCiphertext, sig2048FilePath); saveDataToFile(rsa4096DecodeSignedCiphertext, sig4096FilePath);
             // Verifying signatures
-            Boolean rsa1024Verify = rsaVerify(rsa1024KP, rsa1024Encrypted, rsa1024SignedCiphertext); Boolean rsa2048Verify = rsaVerify(rsa2048KP, rsa2048Encrypted, rsa2048SignedCiphertext); Boolean rsa4096Verify = rsaVerify(rsa4096KP, rsa4096Encrypted, rsa4096SignedCiphertext);
+            boolean rsa1024Verify = rsaVerify(rsa1024KP, rsa1024Encrypted, rsa1024SignedCiphertext); boolean rsa2048Verify = rsaVerify(rsa2048KP, rsa2048Encrypted, rsa2048SignedCiphertext); boolean rsa4096Verify = rsaVerify(rsa4096KP, rsa4096Encrypted, rsa4096SignedCiphertext);
             saveVerificationResult(rsa1024Verify, verify1024FilePath); saveVerificationResult(rsa2048Verify, verify2048FilePath); saveVerificationResult(rsa4096Verify, verify4096FilePath);
         }
     }
