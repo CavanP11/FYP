@@ -26,3 +26,4 @@
 2. RSA
 3. SHA256
 4. TwoFish
+5. SHA3
