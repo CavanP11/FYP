@@ -16,9 +16,11 @@ public class UI {
     private static final String PAGE_ONE = "pageOne";
     private static final String PAGE_TWO = "pageTwo";
     private static final String PAGE_THREE = "pageThree";
+    private static final String PAGE_FOUR = "pageFour";
 
     private static JButton button1;
     private static JButton button2;
+    private static JButton button3;
     // ************************************* \\
     // * Section 3: Creating customisation * \\
     // ************************************* \\
@@ -71,19 +73,24 @@ public class UI {
         // Creating button options
         button1 = new JButton("One Algorithm");
         button2 = new JButton("Two Algorithms");
+        button3 = new JButton("All Algorithms");
         // Customising buttons
         Font buttonFont = new Font("Arial", Font.PLAIN, 18);
         button1.setFont(buttonFont);
         button2.setFont(buttonFont);
+        button3.setFont(buttonFont);
         Dimension buttonSize = new Dimension(175, 50);
         button1.setPreferredSize(buttonSize);
         button2.setPreferredSize(buttonSize);
+        button3.setPreferredSize(buttonSize);
         Color buttonBgColor = new Color(100, 100, 100);
         Color buttonFgColor = Color.WHITE;
         button1.setBackground(buttonBgColor);
         button1.setForeground(buttonFgColor);
         button2.setBackground(buttonBgColor);
         button2.setForeground(buttonFgColor);
+        button3.setBackground(buttonBgColor);
+        button3.setForeground(buttonFgColor);
         gbc.gridwidth = 1;
         gbc.gridy = 1;
         gbc.gridx = 0;
@@ -92,6 +99,11 @@ public class UI {
         gbc.gridx = 1;
         gbc.insets = new Insets(0, 5, 0, 0);
         panel.add(button2, gbc);
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(20, 0, 0, 0);
+        panel.add(button3, gbc);
         return panel;
     }
     // *************************************** \\
@@ -183,6 +195,8 @@ public class UI {
         cards.add(pageTwo, PAGE_TWO);
         JPanel pageThree = Graph.createPageThree();
         cards.add(pageThree, PAGE_THREE);
+        JPanel pageFour = BenchmarkUI.createPageFour();
+        cards.add(pageFour, PAGE_FOUR);
         // Action listeners for buttons
         button1.addActionListener(e -> {
             CardLayout cl = (CardLayout) cards.getLayout();
@@ -192,6 +206,16 @@ public class UI {
         button2.addActionListener(e -> {
             CardLayout cl = (CardLayout) cards.getLayout();
             cl.show(cards, PAGE_ONE);
+        });
+
+        button2.addActionListener(e -> {
+            CardLayout cl = (CardLayout) cards.getLayout();
+            cl.show(cards, PAGE_ONE);
+        });
+
+        button3.addActionListener(e -> {
+            CardLayout cl = (CardLayout) cards.getLayout();
+            cl.show(cards, PAGE_FOUR);
         });
 
         homeButton.addActionListener(e -> {

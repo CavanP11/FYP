@@ -12,6 +12,10 @@ import org.openjdk.jmh.annotations.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.*;
 import java.util.Arrays;
 import java.util.Base64;
@@ -23,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(iterations = 1, time = 1)
 @Measurement(iterations = 1, time = 1)
-@Threads(value=Threads.MAX)
 @Fork(1)
 @State(Scope.Benchmark)
 public class AES_CTR {
@@ -44,8 +47,8 @@ public class AES_CTR {
     @Param({"128", "192", "256"})
     static int keySize;
 
-    @Param({"256", "512", "1024", "2048"})
-    static int plaintextSize;
+    //@Param({"256", "512", "1024", "2048"})
+    //static int plaintextSize;
     // ************************ \\
     // * Section 5: Setup     * \\
     // ************************ \\
@@ -54,7 +57,7 @@ public class AES_CTR {
         byte[] key = keyGeneration();
         SecureRandom random = new SecureRandom();
         // Creating plaintext
-        plaintext = new byte[plaintextSize];
+        plaintext = new byte[256];
         new SecureRandom().nextBytes(plaintext);
         // Creating IV
         byte[] iv = new byte[16]; // 128-bit
@@ -168,37 +171,74 @@ public class AES_CTR {
         saveDataToFile(comparisonText, filePath);
     }
 
+    public static void writeBytesToFile(byte[] bytes, String filePath) throws IOException {
+        Path path = Paths.get(filePath);
+        // Ensure the directories exist
+        Path parentDir = path.getParent();
+        if (parentDir != null) {
+            Files.createDirectories(parentDir);
+        }
+        // Create the file if it doesn't exist
+        try {
+            Files.createFile(path);
+        } catch (FileAlreadyExistsException e) {
+            // Ignore this exception, as the file already exists, and we can continue writing the content
+        }
+        // Write the content to the file
+        Files.write(path, bytes);
+    }
+
     public static void main(String[] args) throws Exception {
         Security.addProvider(new BouncyCastleProvider());
         // Creating files / folders
-        String foldersPath = "Benchmark Results/Pre-Quantum/AES_CTR Benchmarks/";
-        String plaintextFilePath = getFilePath(foldersPath, "AES-Plaintext.txt");
-        String keyFile128Path = getFilePath(foldersPath, "AES-128/Keys.txt"); String keyFile192Path = getFilePath(foldersPath, "AES-192/Keys.txt"); String keyFile256Path = getFilePath(foldersPath, "AES-256/Keys.txt");
-        String encrypt128FilePath = getFilePath(foldersPath, "AES-128/Encrypted.txt"); String encrypt192FilePath = getFilePath(foldersPath, "AES-192/Encrypted.txt"); String encrypt256FilePath = getFilePath(foldersPath, "AES-256/Encrypted.txt");
-        String decrypt128FilePath = getFilePath(foldersPath, "AES-128/Decrypted.txt"); String decrypt192FilePath = getFilePath(foldersPath, "AES-192/Decrypted.txt"); String decrypt256FilePath = getFilePath(foldersPath, "AES-256/Decrypted.txt");
-        String verify128FilePath = getFilePath(foldersPath, "AES-128/VerifyEncryption.txt"); String verify192FilePath = getFilePath(foldersPath, "AES-192/VerifyDecryption.txt"); String verify256FilePath = getFilePath(foldersPath, "AES-256/VerifyDecryption.txt");
+        String foldersPath = "Benchmark Results/Pre-Quantum/AES Benchmarks/";
+        String plaintextFilePath = getFilePath(foldersPath, "Plaintext/Plaintext.txt"); String plaintextFilePathDecoded = getFilePath(foldersPath, "Plaintext/Decoded_Plaintext.txt");
+
+        String keyFile128Path = getFilePath(foldersPath, "Keys/AES-128/Encoded/Keys.txt"); String keyFile128PathDecoded = getFilePath(foldersPath, "Keys/AES-128/Decoded/Keys.txt");
+        String encrypt128FilePath = getFilePath(foldersPath, "Encrypted/AES-128/Encoded/Encrypted.txt"); String encrypt128FilePathDecoded = getFilePath(foldersPath, "Encrypted/AES-128/Decoded/Encrypted.txt");
+        String decrypt128FilePath = getFilePath(foldersPath, "Decrypted/AES-128/Encoded/Decrypted.txt"); String decrypt128FilePathDecoded = getFilePath(foldersPath, "Decrypted/AES-128/Decoded/Decrypted.txt");
+        String verify128FilePath = getFilePath(foldersPath, "DecryptionVerification/AES-128/VerifyEncryption.txt");
+
+        String keyFile192Path = getFilePath(foldersPath, "Keys/AES-192/Encoded/Keys.txt"); String keyFile192PathDecoded = getFilePath(foldersPath, "Keys/AES-192/Decoded/Keys.txt");
+        String encrypt192FilePath = getFilePath(foldersPath, "Encrypted/AES-192/Encoded/Encrypted.txt"); String encrypt192FilePathDecoded = getFilePath(foldersPath, "Encrypted/AES-192/Encrypted.txt");
+        String decrypt192FilePath = getFilePath(foldersPath, "Decrypted/AES-192/Encoded/Decrypted.txt"); String decrypt192FilePathDecoded = getFilePath(foldersPath, "Decrypted/AES-192/Decoded/Decrypted.txt");
+        String verify192FilePath = getFilePath(foldersPath, "DecryptionVerification/AES-192/VerifyDecryption.txt");
+
+        String keyFile256Path = getFilePath(foldersPath, "Keys/AES-256/Encoded/Keys.txt"); String keyFile256PathDecoded = getFilePath(foldersPath, "Keys/AES-256/Decoded/Keys.txt");
+        String encrypt256FilePath = getFilePath(foldersPath, "Encrypted/AES-256/Encoded/Encrypted.txt"); String encrypt256FilePathDecoded = getFilePath(foldersPath, "Encrypted/AES-256/Decoded/Encrypted.txt");
+        String decrypt256FilePath = getFilePath(foldersPath, "Decrypted/AES-256/Encoded/Decrypted.txt"); String decrypt256FilePathDecoded = getFilePath(foldersPath, "Decrypted/AES-256/Decoded/Decrypted.txt");
+        String verify256FilePath = getFilePath(foldersPath, "DecryptionVerification/AES-256/VerifyDecryption.txt");
         for (int i = 0; i < 3; i++) {
             // Random plaintext and IV
             SecureRandom random = new SecureRandom();
             byte[] plaintext = new byte[2048]; byte[] iv = new byte[16];
             new SecureRandom().nextBytes(plaintext); new SecureRandom().nextBytes(iv);
+            // Encoded plaintext
+            writeBytesToFile(plaintext, plaintextFilePath);
+            // Decoded plaintext
             String decodedPlaintext = decodePlaintext(plaintext);
-            saveDataToFile(decodedPlaintext, plaintextFilePath);
+            saveDataToFile(decodedPlaintext, plaintextFilePathDecoded);
             // Creating AES key
             KeyGenerationParameters aes128KPG = new KeyGenerationParameters(new SecureRandom(), 128); KeyGenerationParameters aes192KPG = new KeyGenerationParameters(new SecureRandom(), 192); KeyGenerationParameters aes256KPG = new KeyGenerationParameters(new SecureRandom(), 256);
             CipherKeyGenerator aes128CKG = new CipherKeyGenerator(); aes128CKG.init(aes128KPG); CipherKeyGenerator aes192CKG = new CipherKeyGenerator(); aes192CKG.init(aes192KPG); CipherKeyGenerator aes256CKG = new CipherKeyGenerator(); aes256CKG.init(aes256KPG);
             byte[] aes128Key = aes128CKG.generateKey(); byte[] aes192Key = aes128CKG.generateKey(); byte[] aes256Key = aes256CKG.generateKey();
             String decoded128Key = decodeKey(aes128Key, iv); String decoded192Key = decodeKey(aes192Key, iv); String decoded256Key = decodeKey(aes256Key, iv);
-            saveDataToFile(decoded128Key, keyFile128Path); saveDataToFile(decoded192Key, keyFile192Path); saveDataToFile(decoded256Key, keyFile256Path);
+            saveDataToFile(decoded128Key, keyFile128PathDecoded); saveDataToFile(decoded192Key, keyFile192PathDecoded); saveDataToFile(decoded256Key, keyFile256PathDecoded);
+            // Encoded Key
+            writeBytesToFile(aes128Key, keyFile128Path); writeBytesToFile(aes128Key, keyFile192Path); writeBytesToFile(aes128Key, keyFile256Path);
             // Encrypting plaintext
             byte[] aes128Encrypted = aesEncryption(aes128Key, plaintext, iv); byte[] aes192Encrypted = aesEncryption(aes192Key, plaintext, iv); byte[] aes256Encrypted = aesEncryption(aes256Key, plaintext, iv);
             String aes128Decoded = decodeEncrypted(aes128Encrypted); String aes192Decoded = decodeEncrypted(aes192Encrypted); String aes256Decoded = decodeEncrypted(aes256Encrypted);
-            saveDataToFile(aes128Decoded, encrypt128FilePath); saveDataToFile(aes192Decoded, encrypt192FilePath); saveDataToFile(aes256Decoded, encrypt256FilePath);
-            // Decrypting plaintext
+            saveDataToFile(aes128Decoded, encrypt128FilePath); saveDataToFile(aes192Decoded, encrypt192FilePathDecoded); saveDataToFile(aes256Decoded, encrypt256FilePathDecoded);
+            // Encoded ciphertext
+            writeBytesToFile(aes128Encrypted, encrypt128FilePath); writeBytesToFile(aes192Encrypted, encrypt192FilePath); writeBytesToFile(aes256Encrypted, encrypt256FilePath);
+            // Decrypting ciphertext
             byte[] aes128Decrypted = aesDecryption(aes128Key, aes128Encrypted, iv); byte[] aes192Decrypted = aesDecryption(aes192Key, aes192Encrypted, iv); byte[] aes256Decrypted = aesDecryption(aes256Key, aes256Encrypted, iv);
             String aes128Decoded2 = decodeDecrypted(aes128Decrypted); String aes192Decoded2 = decodeDecrypted(aes192Decrypted); String aes256Decoded2 = decodeDecrypted(aes256Decrypted);
-            saveDataToFile(aes128Decoded2, decrypt128FilePath); saveDataToFile(aes192Decoded2, decrypt192FilePath); saveDataToFile(aes256Decoded2, decrypt256FilePath);
+            saveDataToFile(aes128Decoded2, decrypt128FilePathDecoded); saveDataToFile(aes192Decoded2, decrypt192FilePathDecoded); saveDataToFile(aes256Decoded2, decrypt256FilePathDecoded);
             saveByteArrayComparisonResult(aes128Decrypted, plaintext, verify128FilePath); saveByteArrayComparisonResult(aes192Decrypted, plaintext, verify192FilePath); saveByteArrayComparisonResult(aes256Decrypted, plaintext, verify256FilePath);
+            // Encoded plaintext
+            writeBytesToFile(aes128Decrypted, decrypt128FilePath); writeBytesToFile(aes192Decrypted, decrypt192FilePath); writeBytesToFile(aes256Decrypted, decrypt256FilePath);
         }
     }
 }

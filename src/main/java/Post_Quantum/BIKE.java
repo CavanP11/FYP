@@ -29,7 +29,6 @@ import static org.junit.Assert.assertTrue;
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(iterations = 1, time = 1)
 @Measurement(iterations = 1, time = 1)
-@Threads(value=Threads.MAX)
 @Fork(1)
 @State(Scope.Benchmark)
 public class BIKE {

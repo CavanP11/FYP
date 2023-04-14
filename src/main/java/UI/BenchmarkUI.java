@@ -3,9 +3,7 @@ package UI;
 // * Section 1: Imports * \\
 // ********************** \\
 import Post_Quantum.*;
-import Pre_Quantum.AES_CTR;
-import Pre_Quantum.RSA;
-import Pre_Quantum.SHA256_ECDSA;
+import Pre_Quantum.*;
 import org.openjdk.jmh.profile.GCProfiler;
 import org.openjdk.jmh.profile.StackProfiler;
 import org.openjdk.jmh.profile.WinPerfAsmProfiler;
@@ -16,7 +14,10 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import javax.swing.*;
 import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Objects;
+import java.io.File;
 
 public class BenchmarkUI {
     // *************************************** \\
@@ -170,7 +171,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(Falcon.class.getSimpleName())
-                            .result("Benchmark Results/Falcon Benchmarks/Falcon_Benchmarks.csv");
+                            .result("Benchmark Results/Post-Quantum/Falcon Benchmarks/Falcon_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -185,7 +186,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(Picnic.class.getSimpleName())
-                            .result("Benchmark Results/Picnic Benchmarks/Picnic_Benchmarks.csv");
+                            .result("Benchmark Results/Post-Quantum/Picnic Benchmarks/Picnic_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -200,7 +201,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(Dilithium.class.getSimpleName())
-                            .result("Benchmark Results/Dilithium Benchmarks/Dilithium_Benchmarks.csv");
+                            .result("Benchmark Results/Post-Quantum/Dilithium Benchmarks/Dilithium_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -215,7 +216,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(Kyber.class.getSimpleName())
-                            .result("Benchmark Results/Kyber Benchmarks/Kyber_Benchmarks.csv");
+                            .result("Benchmark Results/Post-Quantum/Kyber Benchmarks/Kyber_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -230,7 +231,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(BIKE.class.getSimpleName())
-                            .result("Benchmark Results/BIKE Benchmarks/BIKE_Benchmarks.csv");
+                            .result("Benchmark Results/Post-Quantum/BIKE Benchmarks/BIKE_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -245,7 +246,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(AES_CTR.class.getSimpleName())
-                            .result("Benchmark Results/AES-CTR Benchmarks/AES-CTR_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/AES_CTR Benchmarks/AES-CTR_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -260,7 +261,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(SHA256_ECDSA.class.getSimpleName())
-                            .result("Benchmark Results/SHA256-EC Benchmarks/SHA256-EC_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/SHA256-EC Benchmarks/SHA256-EC_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -275,7 +276,37 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(RSA.class.getSimpleName())
-                            .result("Benchmark Results/RSA Benchmarks/RSA_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/RSA Benchmarks/RSA_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "SHA3" -> {
+                    try {
+                        Sha3.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(Sha3.class.getSimpleName())
+                            .result("Benchmark Results/Pre-Quantum/Sha3-EC Benchmarks/RSA_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "TwoFish" -> {
+                    try {
+                        TwoFish.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(TwoFish.class.getSimpleName())
+                            .result("Benchmark Results/Pre-Quantum/TwoFish Benchmarks/RSA_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -292,8 +323,8 @@ public class BenchmarkUI {
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
-                    builder.include(Falcon.class.getSimpleName())
-                            .result("Benchmark Results/Falcon Benchmarks/Falcon_Benchmarks.csv");
+                    builder2.include(Falcon.class.getSimpleName())
+                            .result("Benchmark Results/Post-Quantum/Falcon Benchmarks/Falcon_Benchmarks.csv");
                     Options options = builder2.build();
                     try {
                         new Runner(options).run();
@@ -307,8 +338,8 @@ public class BenchmarkUI {
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
-                    builder.include(Picnic.class.getSimpleName())
-                            .result("Benchmark Results/Picnic Benchmarks/Picnic_Benchmarks.csv");
+                    builder2.include(Picnic.class.getSimpleName())
+                            .result("Benchmark Results/Post-Quantum/Picnic Benchmarks/Picnic_Benchmarks.csv");
                     Options options = builder2.build();
                     try {
                         new Runner(options).run();
@@ -322,8 +353,8 @@ public class BenchmarkUI {
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
-                    builder.include(Dilithium.class.getSimpleName())
-                            .result("Benchmark Results/Dilithium Benchmarks/Dilithium_Benchmarks.csv");
+                    builder2.include(Dilithium.class.getSimpleName())
+                            .result("Benchmark Results/Post-Quantum/Dilithium Benchmarks/Dilithium_Benchmarks.csv");
                     Options options = builder2.build();
                     try {
                         new Runner(options).run();
@@ -337,8 +368,8 @@ public class BenchmarkUI {
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
-                    builder.include(Kyber.class.getSimpleName())
-                            .result("Benchmark Results/Kyber Benchmarks/Kyber_Benchmarks.csv");
+                    builder2.include(Kyber.class.getSimpleName())
+                            .result("Benchmark Results/Post-Quantum/Kyber Benchmarks/Kyber_Benchmarks.csv");
                     Options options = builder2.build();
                     try {
                         new Runner(options).run();
@@ -352,8 +383,8 @@ public class BenchmarkUI {
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
-                    builder.include(BIKE.class.getSimpleName())
-                            .result("Benchmark Results/BIKE Benchmarks/BIKE_Benchmarks.csv");
+                    builder2.include(BIKE.class.getSimpleName())
+                            .result("Benchmark Results/Post-Quantum/BIKE Benchmarks/BIKE_Benchmarks.csv");
                     Options options = builder2.build();
                     try {
                         new Runner(options).run();
@@ -367,8 +398,8 @@ public class BenchmarkUI {
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
-                    builder.include(AES_CTR.class.getSimpleName())
-                            .result("Benchmark Results/AES-CTR Benchmarks/AES-CTR_Benchmarks.csv");
+                    builder2.include(AES_CTR.class.getSimpleName())
+                            .result("Benchmark Results/Pre-Quantum/AES_CTR Benchmarks/AES-CTR_Benchmarks.csv");
                     Options options = builder2.build();
                     try {
                         new Runner(options).run();
@@ -382,8 +413,8 @@ public class BenchmarkUI {
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
-                    builder.include(SHA256_ECDSA.class.getSimpleName())
-                            .result("Benchmark Results/SHA256-EC Benchmarks/SHA256-EC_Benchmarks.csv");
+                    builder2.include(SHA256_ECDSA.class.getSimpleName())
+                            .result("Benchmark Results/Pre-Quantum/SHA256-EC Benchmarks/SHA256-EC_Benchmarks.csv");
                     Options options = builder2.build();
                     try {
                         new Runner(options).run();
@@ -397,8 +428,38 @@ public class BenchmarkUI {
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
-                    builder.include(RSA.class.getSimpleName())
-                            .result("Benchmark Results/RSA Benchmarks/RSA_Benchmarks.csv");
+                    builder2.include(RSA.class.getSimpleName())
+                            .result("Benchmark Results/Pre-Quantum/RSA Benchmarks/RSA_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "SHA3" -> {
+                    try {
+                        Sha3.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder2.include(Sha3.class.getSimpleName())
+                            .result("Benchmark Results/Pre-Quantum/Sha3-EC Benchmarks/RSA_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "TwoFish" -> {
+                    try {
+                        TwoFish.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder2.include(TwoFish.class.getSimpleName())
+                            .result("Benchmark Results/Pre-Quantum/TwoFish Benchmarks/RSA_Benchmarks.csv");
                     Options options = builder2.build();
                     try {
                         new Runner(options).run();
@@ -498,7 +559,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(Falcon.class.getSimpleName())
-                            .result("Benchmark Results/Falcon Benchmarks/Falcon_Benchmarks.csv");
+                            .result("Benchmark Results/Post-Quantum/Falcon Benchmarks/Falcon_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -513,7 +574,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(Picnic.class.getSimpleName())
-                            .result("Benchmark Results/Picnic Benchmarks/Picnic_Benchmarks.csv");
+                            .result("Benchmark Results/Post-Quantum/Picnic Benchmarks/Picnic_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -528,7 +589,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(Dilithium.class.getSimpleName())
-                            .result("Benchmark Results/Dilithium Benchmarks/Dilithium_Benchmarks.csv");
+                            .result("Benchmark Results/Post-Quantum/Dilithium Benchmarks/Dilithium_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -543,7 +604,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(Kyber.class.getSimpleName())
-                            .result("Benchmark Results/Kyber Benchmarks/Kyber_Benchmarks.csv");
+                            .result("Benchmark Results/Post-Quantum/Kyber Benchmarks/Kyber_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -558,7 +619,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(BIKE.class.getSimpleName())
-                            .result("Benchmark Results/BIKE Benchmarks/BIKE_Benchmarks.csv");
+                            .result("Benchmark Results/Post-Quantum/BIKE Benchmarks/BIKE_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -573,7 +634,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(AES_CTR.class.getSimpleName())
-                            .result("Benchmark Results/AES-CTR Benchmarks/AES-CTR_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/AES_CTR Benchmarks/AES-CTR_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -588,7 +649,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(SHA256_ECDSA.class.getSimpleName())
-                            .result("Benchmark Results/SHA256-EC Benchmarks/SHA256-EC_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/SHA256-EC Benchmarks/SHA256-EC_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -603,7 +664,37 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(RSA.class.getSimpleName())
-                            .result("Benchmark Results/RSA Benchmarks/RSA_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/RSA Benchmarks/RSA_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "SHA3" -> {
+                    try {
+                        Sha3.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(Sha3.class.getSimpleName())
+                            .result("Benchmark Results/Pre-Quantum/Sha3-EC Benchmarks/RSA_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "TwoFish" -> {
+                    try {
+                        TwoFish.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(TwoFish.class.getSimpleName())
+                            .result("Benchmark Results/Pre-Quantum/TwoFish Benchmarks/RSA_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -612,6 +703,134 @@ public class BenchmarkUI {
                     }
                 }
                 default -> throw new IllegalArgumentException("Invalid algorithm selected: " + algorithm1);
+            }
+        });
+        return panel;
+    }
+    public static JPanel createPageFour() {
+        setLookAndFeel();
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        JButton runButton = new JButton("Run Benchmarks");
+        runButton.setMargin(new Insets(10, 20, 10, 20));
+        Font font = new Font("Arial", Font.PLAIN, 16);
+        runButton.setFont(font);
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(5, 0, 0, 0);
+        panel.add(runButton, gbc);
+        runButton.addActionListener(e -> {
+            System.out.println("Running all benchmarks");
+
+            JCheckBox stackProfilerCheckBox = new JCheckBox("Include Stack Profiler", false);
+            JCheckBox gcProfilerCheckBox = new JCheckBox("Include GC Profiler", false);
+            JCheckBox asmProfilerCheckBox = new JCheckBox("Include ASM Profiler", false);
+            Object[] message = {
+                    "This is for all algorithms.\n*NB* Make sure you are running as Administrator to use profilers.\nOptional Profiles may increase benchmarking times.",
+                    stackProfilerCheckBox,
+                    gcProfilerCheckBox,
+                    asmProfilerCheckBox
+            };
+
+            Window topLevelWindow = SwingUtilities.windowForComponent(panel);
+            JOptionPane.showOptionDialog(
+                    topLevelWindow,
+                    message,
+                    "Confirm",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    new String[]{"OK"},
+                    "default"
+            );
+
+            boolean includeStackProfiler = stackProfilerCheckBox.isSelected();
+            boolean includeGCProfiler = gcProfilerCheckBox.isSelected();
+            boolean includeASMProfiler = asmProfilerCheckBox.isSelected();
+
+
+            String[] algorithms = {"Falcon", "PICNIC", "Dilithium", "Kyber", "BIKE", "AES", "SHA256", "RSA", "SHA3", "TwoFish"};
+
+            // Add the fully qualified class names here, replace "your_package_name" with the actual package name
+            String[] classNames = {
+                    "Post_Quantum.Falcon",
+                    "Post_Quantum.Picnic",
+                    "Post_Quantum.Dilithium",
+                    "Post_Quantum.Kyber",
+                    "Post_Quantum.BIKE",
+                    "Pre_Quantum.AES_CTR",
+                    "Pre_Quantum.SHA256_ECDSA",
+                    "Pre_Quantum.RSA",
+                    "Pre_Quantum.Sha3",
+                    "Pre_Quantum.TwoFish"
+            };
+
+            String[] resultFiles = {
+                    "Falcon_Benchmarks.csv",
+                    "Picnic_Benchmarks.csv",
+                    "Dilithium_Benchmarks.csv",
+                    "Kyber_Benchmarks.csv",
+                    "BIKE_Benchmarks.csv",
+                    "AES-CTR_Benchmarks.csv",
+                    "SHA256-EC_Benchmarks.csv",
+                    "RSA_Benchmarks.csv",
+                    "SHA3_Benchmarks.csv",
+                    "TwoFish_Benchmarks.csv",
+            };
+
+            File benchmarkResultsDirectory = new File("Benchmark Results");
+            if (!benchmarkResultsDirectory.exists()) {
+                if (!benchmarkResultsDirectory.mkdirs()) {
+                    System.err.println("Unable to create Benchmark Results directory.");
+                }
+            }
+
+            for (int i = 0; i < algorithms.length; i++) {
+                System.out.println("Running benchmarks for: " + algorithms[i]);
+                String className = classNames[i];
+                String resultFile = resultFiles[i];
+                String subFolder = algorithms[i].contains("-") ? algorithms[i].substring(0, algorithms[i].indexOf("-")) : algorithms[i];
+                File algorithmDirectory = new File(new File(benchmarkResultsDirectory, (i < 5 ? "Post-Quantum" : "Pre-Quantum")), subFolder + " Benchmarks");
+                if (!algorithmDirectory.exists()) {
+                    if (!algorithmDirectory.mkdirs()) {
+                        System.err.println("Unable to create " + algorithmDirectory.getPath() + " directory.");
+                    }
+                }
+
+                // Create a new OptionsBuilder for each benchmark
+                OptionsBuilder builder = (OptionsBuilder) new OptionsBuilder()
+                        .resultFormat(ResultFormatType.CSV);
+
+                // Check if profilers are selected
+                if (includeStackProfiler) {
+                    builder.addProfiler(StackProfiler.class);
+                }
+                if (includeGCProfiler) {
+                    builder.addProfiler(GCProfiler.class);
+                }
+                if (includeASMProfiler) {
+                    builder.addProfiler(WinPerfAsmProfiler.class);
+                }
+
+                // Call main method of the benchmark class
+                try {
+                    Class<?> clazz = Class.forName(className);
+                    Method mainMethod = clazz.getMethod("main", String[].class);
+                    String[] mainArgs = new String[0];
+                    mainMethod.invoke(null, (Object) mainArgs);
+                } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+                    ex.printStackTrace();
+                }
+
+                builder.include(className)
+                        .result("Benchmark Results/" + (i < 5 ? "Post-Quantum/" : "Pre-Quantum/") + subFolder + " Benchmarks/" + resultFile);
+                Options options = builder.build();
+                try {
+                    new Runner(options).run();
+                } catch (RunnerException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
         return panel;

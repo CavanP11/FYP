@@ -7,6 +7,10 @@ import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.SPHINCSPlusParameterSpec;
 import org.openjdk.jmh.annotations.*;
 import java.io.*;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -43,15 +47,15 @@ public class SphincsPlus {
     // ************************* \\
     // * Section 4: Parameters * \\
     // ************************* \\
-    @Param({"256", "512", "1024", "2048"})
-    static int plaintextSize;
+    //@Param({"256", "512", "1024", "2048"})
+    //static int plaintextSize;
     // ******************** \\
     // * Section 5: Setup * \\
     // ******************** \\
     @Setup
     public void setup() throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
-        plaintext = new byte[plaintextSize];
+        plaintext = new byte[256];
         new SecureRandom().nextBytes(plaintext);
 
         sig = Signature.getInstance("SPHINCSPlus", "BCPQC");
@@ -630,7 +634,7 @@ public class SphincsPlus {
     }
 
     public static String decodeSignature(byte[] signature) {
-        return "Signature: " + Base64.getEncoder().encodeToString(signature);
+        return "Signature:\n" + Base64.getEncoder().encodeToString(signature);
     }
 
     public static void saveVerificationResult(boolean verify, String filePath) {
@@ -638,23 +642,88 @@ public class SphincsPlus {
         saveDataToFile(verificationText, filePath);
     }
 
+    private static String getKeys(KeyPair keyPair) {
+        PublicKey publicKey = keyPair.getPublic();
+        PrivateKey privateKey = keyPair.getPrivate();
+        byte[] pubKey = publicKey.getEncoded();
+        byte[] privKey = privateKey.getEncoded();
+        String result1 = new String(pubKey);
+        String result2 = new String(privKey);
+        return "Public Key:\n" + result1 + "\n\n" +
+                "Private Key:\n" + result2 + "\n";
+    }
+
+    public static void writeBytesToFile(byte[] bytes, String filePath) throws IOException {
+        Path path = Paths.get(filePath);
+        // Ensure the directories exist
+        Path parentDir = path.getParent();
+        if (parentDir != null) {
+            Files.createDirectories(parentDir);
+        }
+        // Create the file if it doesn't exist
+        try {
+            Files.createFile(path);
+        } catch (FileAlreadyExistsException e) {
+            // Ignore this exception, as the file already exists, and we can continue writing the content
+        }
+        // Write the content to the file
+        Files.write(path, bytes);
+    }
+
+    public static String decodePlaintext(byte[] text) {
+        return "Plaintext:\n" + Base64.getEncoder().encodeToString(text);
+    }
+
     public static void main(String[] args) throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
         Signature sig = Signature.getInstance("SPHINCSPlus", "BCPQC");
         // Creating files / folders
         String foldersPath = "Benchmark Results/Post-Quantum/SphincsPlus Benchmarks/";
-        String sha128FilePath = getFilePath(foldersPath, "Sha-2-128/Keys.txt"); String sha128SigFilePath = getFilePath(foldersPath, "Sha-2-128/Signatures.txt"); String sha128VerifyFilePath = getFilePath(foldersPath, "Sha-2-128/VerifySignatures.txt");
-        String sha192FilePath = getFilePath(foldersPath, "Sha-2-192/Keys.txt"); String sha192SigFilePath = getFilePath(foldersPath, "Sha-2-192/Signatures.txt"); String sha192VerifyFilePath = getFilePath(foldersPath, "Sha-2-192/VerifySignatures.txt");
-        String sha256FilePath = getFilePath(foldersPath, "Sha-2-256/Keys.txt"); String sha256SigFilePath = getFilePath(foldersPath, "Sha-2-256/Signatures.txt"); String sha256VerifyFilePath = getFilePath(foldersPath, "Sha-2-256/VerifySignatures.txt");
-        String haraka128FilePath = getFilePath(foldersPath, "Haraka-128/Keys.txt"); String haraka128SigFilePath = getFilePath(foldersPath, "Haraka-128/Signatures.txt"); String haraka128VerifyFilePath = getFilePath(foldersPath, "Haraka-128/VerifySignatures.txt");
-        String haraka192FilePath = getFilePath(foldersPath, "Haraka-192/Keys.txt"); String haraka192SigFilePath = getFilePath(foldersPath, "Haraka-192/Signatures.txt"); String haraka192VerifyFilePath = getFilePath(foldersPath, "Haraka-192/VerifySignatures.txt");
-        String haraka256FilePath = getFilePath(foldersPath, "Haraka-256/Keys.txt"); String haraka256SigFilePath = getFilePath(foldersPath, "Haraka-256/Signatures.txt"); String haraka256VerifyFilePath = getFilePath(foldersPath, "Haraka-256/VerifySignatures.txt");
-        String shake128FilePath = getFilePath(foldersPath, "Shake-128/Keys.txt"); String shake128SigFilePath = getFilePath(foldersPath, "Shake-128/Signatures.txt"); String shake128VerifyFilePath = getFilePath(foldersPath, "Shake-128/VerifySignatures.txt");
-        String shake192FilePath = getFilePath(foldersPath, "Shake-192/Keys.txt"); String shake192SigFilePath = getFilePath(foldersPath, "Shake-192/Signatures.txt"); String shake192VerifyFilePath = getFilePath(foldersPath, "Shake-192/VerifySignatures.txt");
-        String shake256FilePath = getFilePath(foldersPath, "Shake-256/Keys.txt"); String shake256SigFilePath = getFilePath(foldersPath, "Shake-256/Signatures.txt"); String shake256VerifyFilePath = getFilePath(foldersPath, "Shake-256/VerifySignatures.txt");
+        String FilePathPlaintext = getFilePath(foldersPath, "Plaintext/Plaintext.txt"); String FilePathPlaintextDecoded = getFilePath(foldersPath, "Plaintext/Decoded_Plaintext.txt");
+
+        String sha128FilePath = getFilePath(foldersPath, "Keys/Sha-2-128/Encoded/Keys.txt"); String sha128FilePathDecoded = getFilePath(foldersPath, "Keys/Sha-2-128/Decoded/Keys.txt");
+        String sha128SigFilePath = getFilePath(foldersPath, "Signatures/Sha-2-128/Encoded/Signatures.txt"); String sha128SigFilePathDecoded = getFilePath(foldersPath, "Signatures/Sha-2-128/Decoded/Signatures.txt");
+        String sha128VerifyFilePathDecoded = getFilePath(foldersPath, "SignatureVerification/Sha-2-128/VerifySignatures.txt");
+
+        String sha192FilePath = getFilePath(foldersPath, "Keys/Sha-2-192/Encoded/Keys.txt"); String sha192FilePathDecoded = getFilePath(foldersPath, "Keys/Sha-2-192/Decoded/Keys.txt");
+        String sha192SigFilePath = getFilePath(foldersPath, "Signatures/Sha-2-192/Encoded/Signatures.txt"); String sha192SigFilePathDecoded = getFilePath(foldersPath, "Signatures/Sha-2-192/Decoded/Signatures.txt");
+        String sha192VerifyFilePathDecoded = getFilePath(foldersPath, "SignatureVerification/Sha-2-192/VerifySignatures.txt");
+
+        String sha256FilePath = getFilePath(foldersPath, "Keys/Sha-2-256/Encoded/Keys.txt"); String sha256FilePathDecoded = getFilePath(foldersPath, "Keys/Sha-2-256/Decoded/Keys.txt");
+        String sha256SigFilePath = getFilePath(foldersPath, "Signatures/Sha-2-256/Encoded/Signatures.txt"); String sha256SigFilePathDecoded = getFilePath(foldersPath, "Signatures/Sha-2-256/Decoded/Signatures.txt");
+        String sha256VerifyFilePathDecoded = getFilePath(foldersPath, "SignatureVerification/Sha-2-256/VerifySignatures.txt");
+
+        String haraka128FilePath = getFilePath(foldersPath, "Keys/Haraka-128/Encoded/Keys.txt"); String haraka128FilePathDecoded = getFilePath(foldersPath, "Keys/Haraka-128/Decoded/Keys.txt");
+        String haraka128SigFilePath = getFilePath(foldersPath, "Signatures/Haraka-128/Encoded/Signatures.txt");  String haraka128SigFilePathDecoded = getFilePath(foldersPath, "Signatures/Haraka-128/Decoded/Signatures.txt");
+        String haraka128VerifyFilePathDecoded = getFilePath(foldersPath, "SignatureVerification/Haraka-128/VerifySignatures.txt");
+
+        String haraka192FilePath = getFilePath(foldersPath, "Keys/Haraka-192/Encoded/Keys.txt"); String haraka192FilePathDecoded = getFilePath(foldersPath, "Keys/Haraka-192/Decoded/Keys.txt");
+        String haraka192SigFilePath = getFilePath(foldersPath, "Signatures/Haraka-192/Encoded/Signatures.txt"); String haraka192SigFilePathDecoded = getFilePath(foldersPath, "Signatures/Haraka-192/Decoded/Signatures.txt");
+        String haraka192VerifyFilePathDecoded = getFilePath(foldersPath, "SignatureVerification/Haraka-192/VerifySignatures.txt");
+
+        String haraka256FilePath = getFilePath(foldersPath, "Keys/Haraka-256/Encoded/Keys.txt"); String haraka256FilePathDecoded = getFilePath(foldersPath, "Keys/Haraka-256/Decoded/Keys.txt");
+        String haraka256SigFilePath = getFilePath(foldersPath, "Signatures/Haraka-256/Encoded/Signatures.txt"); String haraka256SigFilePathDecoded = getFilePath(foldersPath, "Signatures/Haraka-256/Decoded/Signatures.txt");
+        String haraka256VerifyFilePathDecoded = getFilePath(foldersPath, "SignatureVerification/Haraka-256/VerifySignatures.txt");
+
+        String shake128FilePath = getFilePath(foldersPath, "Keys/Shake-128/Encoded/Keys.txt"); String shake128FilePathDecoded = getFilePath(foldersPath, "Keys/Shake-128/Decoded/Keys.txt");
+        String shake128SigFilePath = getFilePath(foldersPath, "Signatures/Shake-128/Encoded/Signatures.txt"); String shake128SigFilePathDecoded = getFilePath(foldersPath, "Signatures/Shake-128/Decoded/Signatures.txt");
+        String shake128VerifyFilePathDecoded = getFilePath(foldersPath, "SignatureVerification/Shake-128/VerifySignatures.txt");
+
+        String shake192FilePath = getFilePath(foldersPath, "Keys/Shake-192/Encoded/Keys.txt"); String shake192FilePathDecoded = getFilePath(foldersPath, "Keys/Shake-192/Decoded/Keys.txt");
+        String shake192SigFilePath = getFilePath(foldersPath, "Signatures/Shake-192/Encoded/Signatures.txt"); String shake192SigFilePathDecoded = getFilePath(foldersPath, "Signatures/Shake-192/Decoded/Signatures.txt");
+        String shake192VerifyFilePathDecoded = getFilePath(foldersPath, "SignatureVerification/Shake-192/VerifySignatures.txt");
+
+        String shake256FilePath = getFilePath(foldersPath, "Keys/Shake-256/Encoded/Keys.txt"); String shake256FilePathDecoded = getFilePath(foldersPath, "Keys/Shake-256/Decoded/Keys.txt");
+        String shake256SigFilePath = getFilePath(foldersPath, "Signatures/Shake-256/Encoded/Signatures.txt"); String shake256SigFilePathDecoded = getFilePath(foldersPath, "Signatures/Shake-256/Decoded/Signatures.txt");
+        String shake256VerifyFilePathDecoded = getFilePath(foldersPath, "SignatureVerification/Shake-256/VerifySignatures.txt");
         for (int i = 0; i < 3; i++) {
             byte[] plaintext = new byte[2048];
             new SecureRandom().nextBytes(plaintext);
+            // Encoded plaintext
+            writeBytesToFile(plaintext, FilePathPlaintext);
+            // Decoded plaintext
+            String decodedPlaintext = decodePlaintext(plaintext);
+            saveDataToFile(decodedPlaintext, FilePathPlaintextDecoded);
             // Creating KPGs for key pairs
             KeyPairGenerator sha128KeyGen = KeyPairGenerator.getInstance("SPHINCSPlus", "BCPQC"); sha128KeyGen.initialize(SPHINCSPlusParameterSpec.sha2_128f, new SecureRandom());
             KeyPairGenerator sha192KeyGen = KeyPairGenerator.getInstance("SPHINCSPlus", "BCPQC"); sha192KeyGen.initialize(SPHINCSPlusParameterSpec.sha2_192f, new SecureRandom());
@@ -672,9 +741,16 @@ public class SphincsPlus {
             String sha128KeysString = getKeysAsString(sha128KP); String sha192KeysString = getKeysAsString(sha192KP); String sha256KeysString = getKeysAsString(sha256KP);
             String haraka128KeysString = getKeysAsString(haraka128KP); String haraka192KeysString = getKeysAsString(haraka192KP); String haraka256KeysString = getKeysAsString(haraka256KP);
             String shake128KeysString = getKeysAsString(shake128KP); String shake192KeysString = getKeysAsString(shake192KP); String shake256KeysString = getKeysAsString(shake256KP);
-            saveDataToFile(sha128KeysString, sha128FilePath); saveDataToFile(sha192KeysString, sha192FilePath); saveDataToFile(sha256KeysString, sha256FilePath);
-            saveDataToFile(haraka128KeysString, haraka128FilePath); saveDataToFile(haraka192KeysString, haraka192FilePath); saveDataToFile(haraka256KeysString, haraka256FilePath);
-            saveDataToFile(shake128KeysString, shake128FilePath); saveDataToFile(shake192KeysString, shake192FilePath); saveDataToFile(shake256KeysString, shake256FilePath);
+            saveDataToFile(sha128KeysString, sha128FilePathDecoded); saveDataToFile(sha192KeysString, sha192FilePathDecoded); saveDataToFile(sha256KeysString, sha256FilePathDecoded);
+            saveDataToFile(haraka128KeysString, haraka128FilePathDecoded); saveDataToFile(haraka192KeysString, haraka192FilePathDecoded); saveDataToFile(haraka256KeysString, haraka256FilePathDecoded);
+            saveDataToFile(shake128KeysString, shake128FilePathDecoded); saveDataToFile(shake192KeysString, shake192FilePathDecoded); saveDataToFile(shake256KeysString, shake256FilePathDecoded);
+            // Encoded keys
+            String sha128String = getKeys(sha128KP); String sha192String = getKeys(sha192KP); String sha256String = getKeys(sha256KP);
+            String haraka128String = getKeys(haraka128KP); String haraka192String = getKeys(haraka192KP); String haraka256String = getKeys(haraka256KP);
+            String shake128String = getKeys(shake128KP); String shake192String = getKeys(shake192KP); String shake256String = getKeys(shake256KP);
+            saveDataToFile(sha128String, sha128FilePath); saveDataToFile(sha192String, sha192FilePath); saveDataToFile(sha256String, sha256FilePath);
+            saveDataToFile(haraka128String, haraka128FilePath); saveDataToFile(haraka192String, haraka192FilePath); saveDataToFile(haraka256String, haraka256FilePath);
+            saveDataToFile(shake128String,shake128FilePath); saveDataToFile(shake192String, shake192FilePath); saveDataToFile(shake256String, shake256FilePath);
             // Creating signing instances
             byte[] sha128Sig = sphincsSign(sha128KP, sig, plaintext); byte[] sha192Sig = sphincsSign(sha192KP, sig, plaintext); byte[] sha256Sig = sphincsSign(sha256KP, sig, plaintext);
             byte[] haraka128Sig = sphincsSign(haraka128KP, sig, plaintext); byte[] haraka192Sig = sphincsSign(haraka192KP, sig, plaintext); byte[] haraka256Sig = sphincsSign(haraka256KP, sig, plaintext);
@@ -682,16 +758,20 @@ public class SphincsPlus {
             String sha128DecodedSignature = decodeSignature(sha128Sig); String sha192DecodedSignature = decodeSignature(sha192Sig); String sha256DecodedSignature = decodeSignature(sha256Sig);
             String haraka128DecodedSignature = decodeSignature(haraka128Sig); String haraka192DecodedSignature = decodeSignature(haraka192Sig); String haraka256DecodedSignature = decodeSignature(haraka256Sig);
             String shake128DecodedSignature = decodeSignature(shake128Sig); String shake192DecodedSignature = decodeSignature(shake192Sig); String shake256DecodedSignature = decodeSignature(shake256Sig);
-            saveDataToFile(sha128DecodedSignature, sha128SigFilePath); saveDataToFile(sha192DecodedSignature, sha192SigFilePath); saveDataToFile(sha256DecodedSignature, sha256SigFilePath);
-            saveDataToFile(haraka128DecodedSignature, haraka128SigFilePath); saveDataToFile(haraka192DecodedSignature, haraka192SigFilePath); saveDataToFile(haraka256DecodedSignature, haraka256SigFilePath);
-            saveDataToFile(shake128DecodedSignature, shake128SigFilePath); saveDataToFile(shake192DecodedSignature, shake192SigFilePath); saveDataToFile(shake256DecodedSignature, shake256SigFilePath);
+            saveDataToFile(sha128DecodedSignature, sha128SigFilePathDecoded); saveDataToFile(sha192DecodedSignature, sha192SigFilePathDecoded); saveDataToFile(sha256DecodedSignature, sha256SigFilePathDecoded);
+            saveDataToFile(haraka128DecodedSignature, haraka128SigFilePathDecoded); saveDataToFile(haraka192DecodedSignature, haraka192SigFilePathDecoded); saveDataToFile(haraka256DecodedSignature, haraka256SigFilePathDecoded);
+            saveDataToFile(shake128DecodedSignature, shake128SigFilePathDecoded); saveDataToFile(shake192DecodedSignature, shake192SigFilePathDecoded); saveDataToFile(shake256DecodedSignature, shake256SigFilePathDecoded);
+            // Encoded signatures
+            writeBytesToFile(sha128Sig, sha128SigFilePath); writeBytesToFile(sha192Sig, sha192SigFilePath); writeBytesToFile(sha256Sig, sha256SigFilePath);
+            writeBytesToFile(haraka128Sig, haraka128SigFilePath); writeBytesToFile(haraka192Sig, haraka192SigFilePath); writeBytesToFile(haraka256Sig, haraka256SigFilePath);
+            writeBytesToFile(shake128Sig, shake128SigFilePath); writeBytesToFile(shake192Sig, shake192SigFilePath); writeBytesToFile(shake256Sig, shake256SigFilePath);
             // Verifying signatures
             Boolean sha128Verify = sphincsVerify(sha128KP, sig, plaintext, sha128Sig); Boolean sha192Verify = sphincsVerify(sha192KP, sig, plaintext, sha192Sig); Boolean sha256Verify = sphincsVerify(sha256KP, sig, plaintext, sha256Sig);
             Boolean haraka128Verify = sphincsVerify(haraka128KP, sig, plaintext, haraka128Sig); Boolean haraka192Verify = sphincsVerify(haraka192KP, sig, plaintext, haraka192Sig); Boolean haraka256Verify = sphincsVerify(haraka256KP, sig, plaintext, haraka256Sig);
             Boolean shake128Verify = sphincsVerify(shake128KP, sig, plaintext, shake128Sig); Boolean shake192Verify = sphincsVerify(shake192KP, sig, plaintext, shake192Sig); Boolean shake256Verify = sphincsVerify(shake256KP, sig, plaintext, shake256Sig);
-            saveVerificationResult(sha128Verify, sha128VerifyFilePath); saveVerificationResult(sha192Verify, sha192VerifyFilePath); saveVerificationResult(sha256Verify, sha256VerifyFilePath);
-            saveVerificationResult(haraka128Verify, haraka128VerifyFilePath); saveVerificationResult(haraka192Verify, haraka192VerifyFilePath); saveVerificationResult(haraka256Verify, haraka256VerifyFilePath);
-            saveVerificationResult(shake128Verify, shake128VerifyFilePath); saveVerificationResult(shake192Verify, shake192VerifyFilePath); saveVerificationResult(shake256Verify, shake256VerifyFilePath);
+            saveVerificationResult(sha128Verify, sha128VerifyFilePathDecoded); saveVerificationResult(sha192Verify, sha192VerifyFilePathDecoded); saveVerificationResult(sha256Verify, sha256VerifyFilePathDecoded);
+            saveVerificationResult(haraka128Verify, haraka128VerifyFilePathDecoded); saveVerificationResult(haraka192Verify, haraka192VerifyFilePathDecoded); saveVerificationResult(haraka256Verify, haraka256VerifyFilePathDecoded);
+            saveVerificationResult(shake128Verify, shake128VerifyFilePathDecoded); saveVerificationResult(shake192Verify, shake192VerifyFilePathDecoded); saveVerificationResult(shake256Verify, shake256VerifyFilePathDecoded);
         }
     }
 }

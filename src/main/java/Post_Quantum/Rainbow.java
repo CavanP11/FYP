@@ -7,6 +7,10 @@ import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.RainbowParameterSpec;
 import org.openjdk.jmh.annotations.*;
 import java.io.*;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -42,15 +46,15 @@ public class Rainbow {
     // ************************* \\
     // * Section 4: Parameters * \\
     // ************************* \\
-    @Param({"256", "512", "1024", "2048"})
-    static int plaintextSize;
+    //@Param({"256", "512", "1024", "2048"})
+    //static int plaintextSize;
     // ******************** \\
     // * Section 5: Setup * \\
     // ******************** \\
     @Setup
     public void setup() throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
-        plaintext = new byte[plaintextSize];
+        plaintext = new byte[256];
         new SecureRandom().nextBytes(plaintext);
         // Creating KPGs
         r3ClassicKPG = KeyPairGenerator.getInstance("Rainbow", "BCPQC"); r3ClassicKPG.initialize(RainbowParameterSpec.rainbowIIIclassic, new SecureRandom());
@@ -400,7 +404,9 @@ public class Rainbow {
             }
         }
     }
-
+    // ************************************************************** \\
+    // * Section 12: Printing Out Keys, Signatures and Verification * \\
+    // ************************************************************** \\
     public static byte[] rainbowSign(KeyPair kp, byte[] plaintext) throws Exception {
         Signature signature = Signature.getInstance("RAINBOW", "BCPQC");
         signature.initSign(kp.getPrivate(), new SecureRandom());
@@ -443,7 +449,7 @@ public class Rainbow {
     }
 
     public static String decodeSignature(byte[] signature) {
-        return "Signature: " + Base64.getEncoder().encodeToString(signature);
+        return "Signature:\n" + Base64.getEncoder().encodeToString(signature);
     }
 
     public static void saveVerificationResult(boolean verify, String filePath) {
@@ -451,16 +457,62 @@ public class Rainbow {
         saveDataToFile(verificationText, filePath);
     }
 
+    private static String getKeys(KeyPair keyPair) {
+        PublicKey publicKey = keyPair.getPublic();
+        PrivateKey privateKey = keyPair.getPrivate();
+        byte[] pubKey = publicKey.getEncoded();
+        byte[] privKey = privateKey.getEncoded();
+        String result1 = new String(pubKey);
+        String result2 = new String(privKey);
+        return "Kyber Public Key:\n" + result1 + "\n\n" +
+                "Kyber Private Key:\n" + result2 + "\n";
+    }
+
+    public static void writeBytesToFile(byte[] bytes, String filePath) throws IOException {
+        Path path = Paths.get(filePath);
+        // Ensure the directories exist
+        Path parentDir = path.getParent();
+        if (parentDir != null) {
+            Files.createDirectories(parentDir);
+        }
+        // Create the file if it doesn't exist
+        try {
+            Files.createFile(path);
+        } catch (FileAlreadyExistsException e) {
+            // Ignore this exception, as the file already exists, and we can continue writing the content
+        }
+        // Write the content to the file
+        Files.write(path, bytes);
+    }
+
     public static void main(String[] args) throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
         // Creating files / folders
         String foldersPath = "Benchmark Results/Post-Quantum/Rainbow Benchmarks/";
-        String r3ClassicFilePath = getFilePath(foldersPath, "Rainbow-III-Classic/Keys.txt"); String r3ClassicSigFilePath = getFilePath(foldersPath, "Rainbow-III-Classic/Signatures.txt"); String r3ClassicVerifyFilePath = getFilePath(foldersPath, "Rainbow-III-Classic/VerifySignatures.txt");
-        String r3CircumFilePath = getFilePath(foldersPath, "Rainbow-III-Circumzenithal/Keys.txt"); String r3CCircumSigFilePath = getFilePath(foldersPath, "Rainbow-III-Circumzenithal/Signatures.txt"); String r3CircumVerifyFilePath = getFilePath(foldersPath, "Rainbow-III-Circumzenithal/VerifySignatures.txt");
-        String r3CompFilePath = getFilePath(foldersPath, "Rainbow-III-Compressed/Keys.txt"); String r3CompSigFilePath = getFilePath(foldersPath, "Rainbow-III-Compressed/Signatures.txt"); String r3CompVerifyFilePath = getFilePath(foldersPath, "Rainbow-III-Compressed/VerifySignatures.txt");
-        String r5ClassicFilePath = getFilePath(foldersPath, "Rainbow-V-Classic/Keys.txt"); String r5ClassicSigFilePath = getFilePath(foldersPath, "Rainbow-V-Classic/Signatures.txt"); String r5ClassicVerifyFilePath = getFilePath(foldersPath, "Rainbow-V-Classic/VerifySignatures.txt");
-        String r5CircumFilePath = getFilePath(foldersPath, "Rainbow-V-Circumzenithal/Keys.txt"); String r5CircumSigFilePath = getFilePath(foldersPath, "Rainbow-V-Circumzenithal/Signatures.txt"); String r5CircumVerifyFilePath = getFilePath(foldersPath, "Rainbow-V-Circumzenithal/VerifySignatures.txt");
-        String r5CompFilePath = getFilePath(foldersPath, "Rainbow-V-Compressed/Keys.txt"); String r5CompSigFilePath = getFilePath(foldersPath, "Rainbow-V-Compressed/Signatures.txt"); String r5CompVerifyFilePath = getFilePath(foldersPath, "Rainbow-V-Compressed/VerifySignatures.txt");
+
+        String r3ClassicFilePath = getFilePath(foldersPath, "Keys/Rainbow-III-Classic/Encoded/Keys.txt"); String r3ClassicFilePathDecoded = getFilePath(foldersPath, "Keys/Rainbow-III-Classic/Decoded/Keys.txt");
+        String r3ClassicSigFilePath = getFilePath(foldersPath, "Signatures/Rainbow-III-Classic/Encoded/Signatures.txt"); String r3ClassicSigFilePathDecoded = getFilePath(foldersPath, "Signatures/Rainbow-III-Classic/Decoded/Signatures.txt");
+        String r3ClassicVerifyFilePath = getFilePath(foldersPath, "SignatureVerification/Rainbow-III-Classic/VerifySignatures.txt");
+
+        String r3CircumFilePath = getFilePath(foldersPath, "Keys/Rainbow-III-Circumzenithal/Encoded/Keys.txt"); String r3CircumFilePathDecoded = getFilePath(foldersPath, "Keys/Rainbow-III-Circumzenithal/Decoded/Keys.txt");
+        String r3CircumSigFilePath = getFilePath(foldersPath, "Signatures/Rainbow-III-Circumzenithal/Encoded/Signatures.txt"); String r3CircumSigFilePathDecoded = getFilePath(foldersPath, "Signatures/Rainbow-III-Circumzenithal/Decoded/Signatures.txt");
+        String r3CircumVerifyFilePath = getFilePath(foldersPath, "SignatureVerification/Rainbow-III-Circumzenithal/VerifySignatures.txt");
+
+        String r3CompFilePath = getFilePath(foldersPath, "Keys/Rainbow-III-Compressed/Encoded/Keys.txt"); String r3CompFilePathDecoded = getFilePath(foldersPath, "Keys/Rainbow-III-Compressed/Decoded/Keys.txt");
+        String r3CompSigFilePath = getFilePath(foldersPath, "Signatures/Rainbow-III-Compressed/Encoded/Signatures.txt"); String r3CompSigFilePathDecoded = getFilePath(foldersPath, "Signatures/Rainbow-III-Compressed/Decoded/Signatures.txt");
+        String r3CompVerifyFilePath = getFilePath(foldersPath, "SignatureVerification/Rainbow-III-Compressed/VerifySignatures.txt");
+
+        String r5ClassicFilePath = getFilePath(foldersPath, "Keys/Rainbow-V-Classic/Encoded/Keys.txt"); String r5ClassicFilePathDecoded = getFilePath(foldersPath, "Keys/Rainbow-V-Classic/Decoded/Keys.txt");
+        String r5ClassicSigFilePath = getFilePath(foldersPath, "Signatures/Rainbow-V-Classic/Encoded/Signatures.txt"); String r5ClassicSigFilePathDecoded = getFilePath(foldersPath, "Signatures/Rainbow-V-Classic/Decoded/Signatures.txt");
+        String r5ClassicVerifyFilePath = getFilePath(foldersPath, "SignatureVerification/Rainbow-V-Classic/VerifySignatures.txt");
+
+        String r5CircumFilePath = getFilePath(foldersPath, "Keys/Rainbow-V-Circumzenithal/Encoded/Keys.txt"); String r5CircumFilePathDecoded = getFilePath(foldersPath, "Keys/Rainbow-V-Circumzenithal/Decoded/Keys.txt");
+        String r5CircumSigFilePath = getFilePath(foldersPath, "Signatures/Rainbow-V-Circumzenithal/Encoded/Signatures.txt"); String r5CircumSigFilePathDecoded = getFilePath(foldersPath, "Signatures/Rainbow-V-Circumzenithal/Decoded/Signatures.txt");
+        String r5CircumVerifyFilePath = getFilePath(foldersPath, "SignatureVerification/Rainbow-V-Circumzenithal/VerifySignatures.txt");
+
+        String r5CompFilePath = getFilePath(foldersPath, "Keys/Rainbow-V-Compressed/Encoded/Keys.txt"); String r5CompFilePathDecoded = getFilePath(foldersPath, "Keys/Rainbow-V-Compressed/Decoded/Keys.txt");
+        String r5CompSigFilePath = getFilePath(foldersPath, "Signatures/Rainbow-V-Compressed/Encoded/Signatures.txt"); String r5CompSigFilePathDecoded = getFilePath(foldersPath, "Signatures/Rainbow-V-Compressed/Decoded/Signatures.txt");
+        String r5CompVerifyFilePath = getFilePath(foldersPath, "SignatureVerification/Rainbow-V-Compressed/VerifySignatures.txt");
         for (int i = 0; i < 3; i++) {
             byte[] plaintext = new byte[2048];
             new SecureRandom().nextBytes(plaintext);
@@ -476,15 +528,23 @@ public class Rainbow {
             KeyPair r5ClassicKP = r5ClassicKPG.generateKeyPair(); KeyPair r5CircumKP = r5CircumKPG.generateKeyPair(); KeyPair r5CompKP = r5CompKPG.generateKeyPair();
             String r3ClassicKeysString = getKeysAsString(r3ClassicKP); String r3CircumKeysString = getKeysAsString(r3CircumKP); String r3CompKeysString = getKeysAsString(r3CompKP);
             String r5ClassicKeysString = getKeysAsString(r5ClassicKP); String r5CircumKeysString = getKeysAsString(r5CircumKP); String r5CompKeysString = getKeysAsString(r5CompKP);
-            saveDataToFile(r3ClassicKeysString, r3ClassicFilePath); saveDataToFile(r3CircumKeysString, r3CircumFilePath); saveDataToFile(r3CompKeysString, r3CompFilePath);
-            saveDataToFile(r5ClassicKeysString, r5ClassicFilePath); saveDataToFile(r5CircumKeysString, r5CircumFilePath); saveDataToFile(r5CompKeysString, r5CompFilePath);
+            saveDataToFile(r3ClassicKeysString, r3ClassicFilePathDecoded); saveDataToFile(r3CircumKeysString, r3CircumFilePathDecoded); saveDataToFile(r3CompKeysString, r3CompFilePathDecoded);
+            saveDataToFile(r5ClassicKeysString, r5ClassicFilePathDecoded); saveDataToFile(r5CircumKeysString, r5CircumFilePathDecoded); saveDataToFile(r5CompKeysString, r5CompFilePathDecoded);
+            // Encoded key pairs
+            String r3ClassicEnc = getKeys(r3ClassicKP); String r3CircumEnc = getKeys(r3CircumKP); String r3CompEnc = getKeys(r3CompKP);
+            String r5ClassicEnc = getKeys(r5ClassicKP); String r5CircumEnc = getKeys(r5CircumKP); String r5CompEnc = getKeys(r5CompKP);
+            saveDataToFile(r3ClassicEnc, r3ClassicFilePath); saveDataToFile(r3CircumEnc, r3CircumFilePath); saveDataToFile(r3CompEnc, r3CompFilePath);
+            saveDataToFile(r5ClassicEnc, r5ClassicFilePath); saveDataToFile(r5CircumEnc, r5CircumFilePath); saveDataToFile(r5CompEnc, r5CompFilePath);
             // Signing plaintext
             byte[] r3ClassicSig = rainbowSign(r3ClassicKP, plaintext); byte[] r3CircumSig = rainbowSign(r3CircumKP, plaintext); byte[] r3CompSig = rainbowSign(r3CompKP, plaintext);
             byte[] r5ClassicSig = rainbowSign(r5ClassicKP, plaintext); byte[] r5CircumSig = rainbowSign(r5CircumKP, plaintext); byte[] r5CompSig = rainbowSign(r5CompKP, plaintext);
             String r3ClassicDecodedSignature = decodeSignature(r3ClassicSig);  String r3CircumDecodedSignature = decodeSignature(r3CircumSig);  String r3CompDecodedSignature = decodeSignature(r3CompSig);
             String r5ClassicDecodedSignature = decodeSignature(r5ClassicSig);  String r5CircumDecodedSignature = decodeSignature(r5CircumSig);  String r5CompDecodedSignature = decodeSignature(r5CompSig);
-            saveDataToFile(r3ClassicDecodedSignature, r3ClassicSigFilePath); saveDataToFile(r3CircumDecodedSignature, r3CCircumSigFilePath); saveDataToFile(r3CompDecodedSignature, r3CompSigFilePath);
-            saveDataToFile(r5ClassicDecodedSignature, r5ClassicSigFilePath); saveDataToFile(r5CircumDecodedSignature, r5CircumSigFilePath); saveDataToFile(r5CompDecodedSignature, r5CompSigFilePath);
+            saveDataToFile(r3ClassicDecodedSignature, r3ClassicSigFilePathDecoded); saveDataToFile(r3CircumDecodedSignature, r3CircumSigFilePathDecoded); saveDataToFile(r3CompDecodedSignature, r3CompSigFilePathDecoded);
+            saveDataToFile(r5ClassicDecodedSignature, r5ClassicSigFilePathDecoded); saveDataToFile(r5CircumDecodedSignature, r5CircumSigFilePathDecoded); saveDataToFile(r5CompDecodedSignature, r5CompSigFilePathDecoded);
+            // Encoded signatures
+            writeBytesToFile(r3ClassicSig, r3ClassicSigFilePath);  writeBytesToFile(r3CircumSig, r3CircumSigFilePath);  writeBytesToFile(r3CompSig, r3CompSigFilePath);
+            writeBytesToFile(r5ClassicSig, r5ClassicSigFilePath);  writeBytesToFile(r5CircumSig, r5CircumSigFilePath);  writeBytesToFile(r5CompSig, r5CompSigFilePath);
             // Verifying signatures
             boolean r3ClassicVerify = rainbowVerify(r3ClassicKP, plaintext, r3ClassicSig); boolean r3CircumVerify = rainbowVerify(r3CircumKP, plaintext, r3CircumSig); boolean r3CompVerify = rainbowVerify(r3CompKP, plaintext, r3CompSig);
             boolean r5ClassicVerify = rainbowVerify(r5ClassicKP, plaintext, r5ClassicSig); boolean r5CircumVerify = rainbowVerify(r5CircumKP, plaintext, r5CircumSig); boolean r5CompVerify = rainbowVerify(r5CompKP, plaintext, r5CompSig);
@@ -492,5 +552,4 @@ public class Rainbow {
             saveVerificationResult(r5ClassicVerify, r5ClassicVerifyFilePath); saveVerificationResult(r5CircumVerify, r5CircumVerifyFilePath); saveVerificationResult(r5CompVerify, r5CompVerifyFilePath);
         }
     }
-
 }

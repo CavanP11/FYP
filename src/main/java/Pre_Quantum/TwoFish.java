@@ -23,9 +23,8 @@ import java.util.concurrent.TimeUnit;
 // ********************************** \\
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 3, time = 1)
-@Measurement(iterations = 6, time = 1)
-@Threads(value=Threads.MAX)
+@Warmup(iterations = 1, time = 1)
+@Measurement(iterations = 1, time = 1)
 @Fork(1)
 @State(Scope.Benchmark)
 public class TwoFish {
@@ -38,7 +37,6 @@ public class TwoFish {
 
     private static byte[] plaintext;
 
-    private static Cipher cipher;
 
     private static SecretKey key;
 
@@ -49,18 +47,16 @@ public class TwoFish {
     @Param({"128", "192", "256"})
     static int keySize;
 
-    @Param({"512", "1024", "2048"})
-    static int plaintextSize;
+    //@Param({"256", "512", "1024", "2048"})
+    //static int plaintextSize;
     // ******************** \\
     // * Section 5: Setup * \\
     // ******************** \\
     @Setup
     public void setup() throws Exception {
         Security.addProvider(new BouncyCastleProvider());
-
-        cipher = Cipher.getInstance("Twofish/CBC/PKCS7Padding", "BC");
         // Generating key for TwoFish encryption/decryption
-        plaintext = new byte[plaintextSize];
+        plaintext = new byte[256];
         new SecureRandom().nextBytes(plaintext);
         KeyGenerator keyGenerator = KeyGenerator.getInstance("Twofish", "BC");
         keyGenerator.init(keySize);
@@ -85,6 +81,7 @@ public class TwoFish {
 
     @Benchmark
     public byte[] encrypt() throws Exception {
+        Cipher cipher = Cipher.getInstance("Twofish/CBC/PKCS7Padding", "BC");
         cipher.init(Cipher.ENCRYPT_MODE, key, iv);
         return cipher.doFinal(plaintext);
     }
@@ -126,7 +123,7 @@ public class TwoFish {
     }
 
     private static String getKeyAsString(SecretKey secretKey) {
-        return "Secret Key:\n " + Base64.getEncoder().encodeToString(secretKey.getEncoded()) + "\n\n";
+        return "Secret Key:\n " + Base64.getEncoder().encodeToString(secretKey.getEncoded()) + "\n";
     }
 
 
@@ -178,16 +175,22 @@ public class TwoFish {
         return "Plaintext:\n" + Base64.getEncoder().encodeToString(decryption);
     }
 
+    public static void writeSecretKeyToFile(SecretKey secretKey, String filePath) throws IOException {
+        byte[] keyBytes = secretKey.getEncoded();
+        // Write the key bytes to a file using the provided writeBytesToFile method
+        writeBytesToFile(keyBytes, filePath);
+    }
+
     public static void main(String[] args) throws Exception {
         Security.addProvider(new BouncyCastleProvider());
         Cipher cipher = Cipher.getInstance("Twofish/CBC/PKCS7Padding", "BC");
         byte[] macKey = new byte[32];
         String foldersPath = "Benchmark Results/Pre-Quantum/TwoFish Benchmarks/";
-        String twoFishFilePath = getFilePath(foldersPath, "Keys.txt");
-        String twoFishPlaintextFilePath = getFilePath(foldersPath, "Plaintext/Plaintext.txt"); String twoFishDecodedPlaintextFilePath = getFilePath(foldersPath, "Plaintext/Decoded_Plaintext.txt");
-        String twoFishEncryptFilePath = getFilePath(foldersPath, "Encryption/Encryption.txt"); String twoFishDecodedEncryptFilePath = getFilePath(foldersPath, "Encryption/Decoded_Encryption.txt");
-        String twoFishDecryptFilePath = getFilePath(foldersPath, "Decryption/Decryption.txt"); String twoFishDecodedDecryptFilePath = getFilePath(foldersPath, "Decryption/Decoded_Decryption.txt");
-        String twoFishMACFilePath = getFilePath(foldersPath, "Mac/MAC.txt"); String twoFishDecodedMACFilePath = getFilePath(foldersPath, "MAC/Decoded_MAC.txt");
+        String twoFishFilePath = getFilePath(foldersPath, "Keys.txt"); String twoFishFilePathDecoded = getFilePath(foldersPath, "Decoded_Keys.txt");
+        String twoFishPlaintextFilePath = getFilePath(foldersPath, "Plaintext/Encoded/Plaintext.txt"); String twoFishDecodedPlaintextFilePath = getFilePath(foldersPath, "Plaintext/Decoded/Plaintext.txt");
+        String twoFishEncryptFilePath = getFilePath(foldersPath, "Encryption/Encoded/Encryption.txt"); String twoFishDecodedEncryptFilePath = getFilePath(foldersPath, "Encryption/Decoded/Encryption.txt");
+        String twoFishDecryptFilePath = getFilePath(foldersPath, "Decryption/Encoded/Decryption.txt"); String twoFishDecodedDecryptFilePath = getFilePath(foldersPath, "Decryption/Decoded/Decryption.txt");
+        String twoFishMACFilePath = getFilePath(foldersPath, "Mac/Encoded/MAC.txt"); String twoFishDecodedMACFilePath = getFilePath(foldersPath, "MAC/Decoded/MAC.txt");
         for (int i = 0; i < 3; i++) {
             byte[] plaintext = new byte[2048];
             new SecureRandom().nextBytes(plaintext);
@@ -196,8 +199,11 @@ public class TwoFish {
             keyGen.init(256);
             SecretKey key = new SecretKeySpec(keyGen.generateKey().getEncoded(), "Twofish");
             IvParameterSpec iv = new IvParameterSpec(new byte[16]);
+            // Decoded key
             String keyString = getKeyAsString(key);
-            saveDataToFile(keyString, twoFishFilePath);
+            saveDataToFile(keyString, twoFishFilePathDecoded);
+            // Encoded key
+            writeSecretKeyToFile(key, twoFishFilePath);
             // Saving plaintext
             String twoFishDecodedPlaintext = decodePlaintext(plaintext);
             writeBytesToFile(plaintext, twoFishPlaintextFilePath);

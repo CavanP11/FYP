@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(iterations = 1, time = 1)
 @Measurement(iterations = 1, time = 1)
-@Threads(value=Threads.MAX)
 @Fork(1)
 @State(Scope.Benchmark)
 public class Kyber {
@@ -547,6 +546,5 @@ public class Kyber {
             saveDataToFile(encap512, k512EncapFilePath); saveDataToFile(encap768, k768EncapFilePath); saveDataToFile(encap1024, k1024EncapFilePath);
             saveDataToFile(encap512Aes, k512AesEncapFilePath); saveDataToFile(encap768Aes, k768AesEncapFilePath); saveDataToFile(encap1024Aes, k1024AesEncapFilePath);
         }
-
     }
 }

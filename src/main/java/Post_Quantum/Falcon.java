@@ -20,9 +20,8 @@ import java.util.concurrent.TimeUnit;
 // ********************************** \\
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 1, time = 1 )
+@Warmup(iterations = 1, time = 1)
 @Measurement(iterations = 1, time = 1)
-@Threads(value=Threads.MAX)
 @Fork(1)
 @State(Scope.Benchmark)
 public class Falcon {
@@ -41,8 +40,8 @@ public class Falcon {
     // ************************* \\
     // * Section 4: Parameters * \\
     // ************************* \\
-    @Param({"256", "512", "1024", "2048"})
-    static int plaintextSize;
+    //@Param({"256", "512", "1024", "2048"})
+    //static int plaintextSize;
     // ************************ \\
     // * Section 5: Setup     * \\
     // ************************ \\
@@ -50,7 +49,7 @@ public class Falcon {
     public void setup() throws Exception {
         // Setting up starting variables
         Security.addProvider(new BouncyCastlePQCProvider());
-        plaintext = new byte[plaintextSize];
+        plaintext = new byte[256];
         new SecureRandom().nextBytes(plaintext);
         // Creating KGPs for KPs
         f512KPG = KeyPairGenerator.getInstance("Falcon", "BCPQC"); f512KPG.initialize(FalconParameterSpec.falcon_512, new SecureRandom());
