@@ -67,7 +67,7 @@ public class BenchmarkUI {
         gbc.insets = new Insets(5, 0, 5, 0);
         panel.add(label, gbc);
         // Create combo boxes to select algorithms
-        String[] algorithms = {"CRYSTALS-Kyber", "CRYSTALS-Dilithium", "Falcon", "Picnic", "BIKE", "AES-CTR", "SHA256-EC", "RSA", "TwoFish"};
+        String[] algorithms = {"CRYSTALS-Kyber", "CRYSTALS-Dilithium", "Falcon", "Picnic", "BIKE", "Sphincs+", "Rainbow", "AES-CTR", "Sha3", "SHA256-EC", "RSA", "TwoFish"};
         JComboBox<String> comboBox1 = new JComboBox<>(algorithms);
         JComboBox<String> comboBox2 = new JComboBox<>(algorithms);
         Dimension preferredSize = new Dimension(200, 30);
@@ -163,7 +163,7 @@ public class BenchmarkUI {
                 builder2.addProfiler(WinPerfAsmProfiler.class);
             }
             // Switch to get options for selected algorithms
-            switch (Objects.requireNonNull(algorithm2)) {
+            switch (Objects.requireNonNull(algorithm1)) {
                 case "Falcon" -> {
                     try {
                         Falcon.main(new String[0]);
@@ -172,6 +172,36 @@ public class BenchmarkUI {
                     }
                     builder.include(Falcon.class.getSimpleName())
                             .result("Benchmark Results/Post-Quantum/Falcon Benchmarks/Falcon_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "Sphincs+" -> {
+                    try {
+                        SphincsPlus.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(SphincsPlus.class.getSimpleName())
+                            .result("Benchmark Results/Post-Quantum/SphincsPlus Benchmarks/SphincsPlus_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "Rainbow" -> {
+                    try {
+                        Rainbow.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(Rainbow.class.getSimpleName())
+                            .result("Benchmark Results/Post-Quantum/Rainbow Benchmarks/Rainbow_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -209,7 +239,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                 }
-                case "Dilithium-Kyber" -> {
+                case "CRYSTALS-Kyber" -> {
                     try {
                         Kyber.main(new String[0]);
                     } catch (Exception ex) {
@@ -332,6 +362,36 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                 }
+                case "Sphincs+" -> {
+                    try {
+                        SphincsPlus.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder2.include(SphincsPlus.class.getSimpleName())
+                            .result("Benchmark Results/Post-Quantum/SphincsPlus Benchmarks/SphincsPlus_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "Rainbow" -> {
+                    try {
+                        Rainbow.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder2.include(Rainbow.class.getSimpleName())
+                            .result("Benchmark Results/Post-Quantum/Rainbow Benchmarks/Rainbow_Benchmarks.csv");
+                    Options options = builder2.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
                 case "PICNIC" -> {
                     try {
                         Picnic.main(new String[0]);
@@ -362,7 +422,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                 }
-                case "Dilithium-Kyber" -> {
+                case "CRYSTALS-Kyber" -> {
                     try {
                         Kyber.main(new String[0]);
                     } catch (Exception ex) {
@@ -488,7 +548,7 @@ public class BenchmarkUI {
         gbc.insets = new Insets(5, 0, 5, 0);
         panel.add(label, gbc);
         // Create combo boxes to select algorithms
-        String[] algorithms = {"BIKE", "Falcon", "Picnic", "CRYSTALS-Kyber", "CRYSTALS-Dilithium"};
+        String[] algorithms = {"CRYSTALS-Kyber", "CRYSTALS-Dilithium", "Falcon", "Picnic", "BIKE", "Sphincs+", "Rainbow", "AES-CTR", "Sha3", "SHA256-EC", "RSA", "TwoFish"};
         JComboBox<String> comboBox1 = new JComboBox<>(algorithms);
         Dimension preferredSize = new Dimension(200, 30);
         comboBox1.setPreferredSize(preferredSize);
@@ -567,6 +627,36 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                 }
+                case "Sphincs+" -> {
+                    try {
+                        SphincsPlus.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(SphincsPlus.class.getSimpleName())
+                            .result("Benchmark Results/Post-Quantum/SphincsPlus Benchmarks/SphincsPlus_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                case "Rainbow" -> {
+                    try {
+                        Rainbow.main(new String[0]);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    builder.include(Rainbow.class.getSimpleName())
+                            .result("Benchmark Results/Post-Quantum/Rainbow Benchmarks/Rainbow_Benchmarks.csv");
+                    Options options = builder.build();
+                    try {
+                        new Runner(options).run();
+                    } catch (RunnerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
                 case "PICNIC" -> {
                     try {
                         Picnic.main(new String[0]);
@@ -597,7 +687,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                 }
-                case "Dilithium-Kyber" -> {
+                case "CRYSTALS-Kyber" -> {
                     try {
                         Kyber.main(new String[0]);
                     } catch (Exception ex) {

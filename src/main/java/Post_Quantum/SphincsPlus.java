@@ -22,8 +22,8 @@ import static org.junit.Assert.assertEquals;
 // ********************************** \\
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 1, time = 1)
-@Measurement(iterations = 1, time = 1)
+@Warmup(iterations = 3, time = 1)
+@Measurement(iterations = 5, time = 2)
 @Fork(1)
 @State(Scope.Benchmark)
 public class SphincsPlus {
@@ -47,15 +47,15 @@ public class SphincsPlus {
     // ************************* \\
     // * Section 4: Parameters * \\
     // ************************* \\
-    //@Param({"256", "512", "1024", "2048"})
-    //static int plaintextSize;
+    @Param({"256", "512", "1024", "2048"})
+    static int plaintextSize;
     // ******************** \\
     // * Section 5: Setup * \\
     // ******************** \\
     @Setup
     public void setup() throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
-        plaintext = new byte[256];
+        plaintext = new byte[plaintextSize];
         new SecureRandom().nextBytes(plaintext);
 
         sig = Signature.getInstance("SPHINCSPlus", "BCPQC");

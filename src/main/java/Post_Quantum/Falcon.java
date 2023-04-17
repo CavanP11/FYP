@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 // ********************************** \\
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 1, time = 1)
-@Measurement(iterations = 1, time = 1)
+@Warmup(iterations = 3, time = 1)
+@Measurement(iterations = 5, time = 2)
 @Fork(1)
 @State(Scope.Benchmark)
 public class Falcon {
@@ -29,7 +29,9 @@ public class Falcon {
     // * Section 3: Variables * \\
     // ************************ \\
     private static KeyPairGenerator f512KPG; private static KeyPairGenerator f1024KPG;
-
+    /**
+     *
+     */
     private KeyPair falcon512KP; private KeyPair falcon1024KP;
 
     private static Signature f512Sig; private static Signature f1024Sig;
@@ -40,8 +42,8 @@ public class Falcon {
     // ************************* \\
     // * Section 4: Parameters * \\
     // ************************* \\
-    //@Param({"256", "512", "1024", "2048"})
-    //static int plaintextSize;
+    @Param({"256", "512", "1024", "2048"})
+    static int plaintextSize;
     // ************************ \\
     // * Section 5: Setup     * \\
     // ************************ \\
@@ -49,7 +51,7 @@ public class Falcon {
     public void setup() throws Exception {
         // Setting up starting variables
         Security.addProvider(new BouncyCastlePQCProvider());
-        plaintext = new byte[256];
+        plaintext = new byte[plaintextSize];
         new SecureRandom().nextBytes(plaintext);
         // Creating KGPs for KPs
         f512KPG = KeyPairGenerator.getInstance("Falcon", "BCPQC"); f512KPG.initialize(FalconParameterSpec.falcon_512, new SecureRandom());

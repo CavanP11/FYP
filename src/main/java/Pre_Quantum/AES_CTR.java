@@ -25,8 +25,8 @@ import java.util.concurrent.TimeUnit;
 // ********************************** \\
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 1, time = 1)
-@Measurement(iterations = 1, time = 1)
+@Warmup(iterations = 3, time = 1)
+@Measurement(iterations = 5, time = 2)
 @Fork(1)
 @State(Scope.Benchmark)
 public class AES_CTR {
@@ -47,8 +47,8 @@ public class AES_CTR {
     @Param({"128", "192", "256"})
     static int keySize;
 
-    //@Param({"256", "512", "1024", "2048"})
-    //static int plaintextSize;
+    @Param({"256", "512", "1024", "2048"})
+    static int plaintextSize;
     // ************************ \\
     // * Section 5: Setup     * \\
     // ************************ \\
@@ -57,7 +57,7 @@ public class AES_CTR {
         byte[] key = keyGeneration();
         SecureRandom random = new SecureRandom();
         // Creating plaintext
-        plaintext = new byte[256];
+        plaintext = new byte[plaintextSize];
         new SecureRandom().nextBytes(plaintext);
         // Creating IV
         byte[] iv = new byte[16]; // 128-bit

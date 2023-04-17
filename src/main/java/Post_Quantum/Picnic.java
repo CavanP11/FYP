@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 // ********************************** \\
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 1, time = 1)
-@Measurement(iterations = 1, time = 1)
+@Warmup(iterations = 3, time = 1)
+@Measurement(iterations = 5, time = 2)
 @Fork(1)
 @State(Scope.Benchmark)
 public class Picnic {
@@ -44,8 +44,8 @@ public class Picnic {
     // ************************* \\
     // * Section 4: Parameters * \\
     // ************************* \\
-    //@Param({"256", "512", "1024", "2048"})
-    //static int plaintextSize;
+    @Param({"256", "512", "1024", "2048"})
+    static int plaintextSize;
     @Param({"Picnic", "SHA3-512WITHPICNIC", "SHA512WITHPICNIC", "SHAKE256WITHPICNIC"})
     static String algorithm;
     // ******************** \\
@@ -55,7 +55,7 @@ public class Picnic {
     public void setup() throws Exception {
         Security.addProvider(new BouncyCastlePQCProvider());
         SecureRandom random = new SecureRandom();
-        plaintext = new byte[256];
+        plaintext = new byte[plaintextSize];
         new SecureRandom().nextBytes(plaintext);
         // Creating signature of the current algorithm parameter
         l1fsSig = Signature.getInstance(algorithm, "BCPQC");

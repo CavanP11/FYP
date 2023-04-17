@@ -27,8 +27,8 @@ import java.util.concurrent.TimeUnit;
 // ********************************** \\
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 1, time = 1)
-@Measurement(iterations = 1, time = 1)
+@Warmup(iterations = 3, time = 1)
+@Measurement(iterations = 5, time = 2)
 @Fork(1)
 @State(Scope.Benchmark)
 public class SHA256_ECDSA {
@@ -48,8 +48,8 @@ public class SHA256_ECDSA {
     // ************************* \\
     // * Section 4: Parameters * \\
     // ************************* \\
-    //@Param({"256", "512", "1024", "2048"})
-    //static int plaintextSize;
+    @Param({"256", "512", "1024", "2048"})
+    static int plaintextSize;
 
     @Param({"secp256r1", "secp256k1", "brainpoolP256r1"})
     static String ecName;
@@ -61,7 +61,7 @@ public class SHA256_ECDSA {
         // Selecting BouncyCastle provider
         Security.addProvider(new BouncyCastleProvider());
         // Creating data of size corresponding to size parameters.
-        plaintext = new byte[256];
+        plaintext = new byte[plaintextSize];
         new SecureRandom().nextBytes(plaintext);
         // Key generation
         kpg = KeyPairGenerator.getInstance("ECDSA", "BC");

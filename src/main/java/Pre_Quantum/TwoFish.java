@@ -23,8 +23,8 @@ import java.util.concurrent.TimeUnit;
 // ********************************** \\
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 1, time = 1)
-@Measurement(iterations = 1, time = 1)
+@Warmup(iterations = 3, time = 1)
+@Measurement(iterations = 5, time = 2)
 @Fork(1)
 @State(Scope.Benchmark)
 public class TwoFish {
@@ -47,8 +47,8 @@ public class TwoFish {
     @Param({"128", "192", "256"})
     static int keySize;
 
-    //@Param({"256", "512", "1024", "2048"})
-    //static int plaintextSize;
+    @Param({"256", "512", "1024", "2048"})
+    static int plaintextSize;
     // ******************** \\
     // * Section 5: Setup * \\
     // ******************** \\
@@ -56,7 +56,7 @@ public class TwoFish {
     public void setup() throws Exception {
         Security.addProvider(new BouncyCastleProvider());
         // Generating key for TwoFish encryption/decryption
-        plaintext = new byte[256];
+        plaintext = new byte[plaintextSize];
         new SecureRandom().nextBytes(plaintext);
         KeyGenerator keyGenerator = KeyGenerator.getInstance("Twofish", "BC");
         keyGenerator.init(keySize);

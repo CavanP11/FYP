@@ -31,8 +31,8 @@ import java.util.concurrent.TimeUnit;
 // ********************************** \\
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 1, time = 1)
-@Measurement(iterations = 1, time = 1)
+@Warmup(iterations = 3, time = 1)
+@Measurement(iterations = 5, time = 2)
 @Fork(1)
 @State(Scope.Benchmark)
 public class RSA {
@@ -50,15 +50,15 @@ public class RSA {
     @Param({"1024", "2048", "4096"})
     static int keySize;
 
-    //@Param({"117", "245", "501"})
-    //static int plaintextSize;
+    @Param({"117", "245", "501"})
+    static int plaintextSize;
     // ************************ \\
     // * Section 5: Setup     * \\
     // ************************ \\
     @Setup
     public void setup() throws Exception {
         // Generating a random plaintext
-        plaintext = new byte[117];
+        plaintext = new byte[plaintextSize];
         new SecureRandom().nextBytes(plaintext);
         // Generate KP for engines
         aKP = generateKey();

@@ -29,8 +29,8 @@ import java.util.concurrent.TimeUnit;
 // ********************************** \\
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 1, time = 1)
-@Measurement(iterations = 1, time = 1)
+@Warmup(iterations = 3, time = 1)
+@Measurement(iterations = 5, time = 2)
 @Fork(1)
 @State(Scope.Benchmark)
 public class Sha3 {
@@ -47,8 +47,8 @@ public class Sha3 {
     // ************************* \\
     // * Section 4: Parameters * \\
     // ************************* \\
-    //@Param({"256", "512", "1024", "2048"})
-    //static int plaintextSize;
+    @Param({"256", "512", "1024", "2048"})
+    static int plaintextSize;
 
     @Param({"secp256r1", "secp256k1", "brainpoolP256r1"})
     static String ecName;
@@ -59,7 +59,7 @@ public class Sha3 {
     public void setup() throws Exception {
         Security.addProvider(new BouncyCastleProvider());
         // Generate some random data to hash
-        plaintext = new byte[256];
+        plaintext = new byte[plaintextSize];
         new SecureRandom().nextBytes(plaintext);
         // Creating keypair
         KeyPair sha3KP = sha3KeyGeneration();

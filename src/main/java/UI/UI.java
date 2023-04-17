@@ -165,18 +165,34 @@ public class UI {
         JMenuItem bike = new JMenuItem("BIKE");
         bike.setFont(new Font("Arial", Font.PLAIN, 14));
         postqButton.add(bike);
+        // Adding SPHINCS+ to the dropdown menu
+        JMenuItem sphincs = new JMenuItem("SPHINCS+");
+        sphincs.setFont(new Font("Arial", Font.PLAIN, 14));
+        postqButton.add(sphincs);
+        // Adding Rainbow to the dropdown menu
+        JMenuItem rainbow = new JMenuItem("Rainbow+");
+        rainbow.setFont(new Font("Arial", Font.PLAIN, 14));
+        postqButton.add(rainbow);
         // Adding SHA256 to the dropdown menu
-        JMenuItem sha256 = new JMenuItem("SHA256");
+        JMenuItem sha256 = new JMenuItem("SHA-256");
         sha256.setFont(new Font("Arial", Font.PLAIN, 14));
         preqButton.add(sha256);
         // Adding RSA to the dropdown menu
         JMenuItem rsa = new JMenuItem("RSA");
         rsa.setFont(new Font("Arial", Font.PLAIN, 14));
         preqButton.add(rsa);
-        // Adding RSA to the dropdown menu
+        // Adding AES to the dropdown menu
         JMenuItem aesCTR = new JMenuItem("AES-CTR");
         aesCTR.setFont(new Font("Arial", Font.PLAIN, 14));
         preqButton.add(aesCTR);
+        // Adding SHA3 to the dropdown menu
+        JMenuItem sha3 = new JMenuItem("SHA-3");
+        sha3.setFont(new Font("Arial", Font.PLAIN, 14));
+        preqButton.add(sha3);
+        // Adding TwoFish to the dropdown menu
+        JMenuItem twoFish = new JMenuItem("TwoFish");
+        twoFish.setFont(new Font("Arial", Font.PLAIN, 14));
+        preqButton.add(twoFish);
         // Menubar
         JMenuBar menuBar = new JMenuBar();
         menuBar.setBackground(new Color(100, 100, 100));
@@ -259,6 +275,71 @@ public class UI {
             // Redirect to website when "Benchmark Algorithm 1" is selected
             try {
                 Desktop.getDesktop().browse(new URI("https://microsoft.github.io/Picnic/"));
+            } catch (IOException | URISyntaxException ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        sphincs.addActionListener(e -> {
+            // Redirect to website when "Benchmark Algorithm 1" is selected
+            try {
+                Desktop.getDesktop().browse(new URI("https://sphincs.org/resources.html/"));
+            } catch (IOException | URISyntaxException ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        rainbow.addActionListener(e -> {
+            // Redirect to website when "Benchmark Algorithm 1" is selected
+            try {
+                Desktop.getDesktop().browse(new URI("https://www.pqcrainbow.org/"));
+            } catch (IOException | URISyntaxException ex) {
+                ex.printStackTrace();
+            }
+        });
+        frame.setVisible(true);
+
+        aesCTR.addActionListener(e -> {
+            // Redirect to website when "Benchmark Algorithm 1" is selected
+            try {
+                Desktop.getDesktop().browse(new URI("https://www.nist.gov/publications/advanced-encryption-standard-aes/"));
+            } catch (IOException | URISyntaxException ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        rsa.addActionListener(e -> {
+            // Redirect to website when "Benchmark Algorithm 1" is selected
+            try {
+                Desktop.getDesktop().browse(new URI("https://csrc.nist.gov/glossary/term/rsa/"));
+            } catch (IOException | URISyntaxException ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        sha256.addActionListener(e -> {
+            // Redirect to website when "Benchmark Algorithm 1" is selected
+            try {
+                Desktop.getDesktop().browse(new URI("https://csrc.nist.gov/glossary/term/sha_256"));
+            } catch (IOException | URISyntaxException ex) {
+                ex.printStackTrace();
+            }
+        });
+        frame.setVisible(true);
+
+        sha3.addActionListener(e -> {
+            // Redirect to website when "Benchmark Algorithm 1" is selected
+            try {
+                Desktop.getDesktop().browse(new URI("https://csrc.nist.gov/projects/hash-functions/sha-3-project/"));
+            } catch (IOException | URISyntaxException ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        twoFish.addActionListener(e -> {
+            // Redirect to website when "Benchmark Algorithm 1" is selected
+            try {
+                Desktop.getDesktop().browse(new URI("https://www.schneier.com/wp-content/uploads/2016/02/paper-twofish-paper.pdf/"));
             } catch (IOException | URISyntaxException ex) {
                 ex.printStackTrace();
             }
