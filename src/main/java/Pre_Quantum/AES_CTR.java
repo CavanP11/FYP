@@ -62,6 +62,7 @@ public class AES_CTR {
         // Creating IV
         byte[] iv = new byte[16]; // 128-bit
         new SecureRandom().nextBytes(iv);
+        new SecureRandom().nextBytes(plaintext);
         // Creating block cipher to covert to stream cipher
         CipherParameters cipherParams = new ParametersWithIV(new KeyParameter(key), iv);
         AESEngine aesEngine = new AESEngine();
