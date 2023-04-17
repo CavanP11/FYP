@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 // ********************************** \\
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 3, time = 1)
-@Measurement(iterations = 5, time = 2)
+@Warmup(iterations = 2, time = 1)
+@Measurement(iterations = 4, time = 1)
 @Fork(1)
 @State(Scope.Benchmark)
 public class Falcon {
@@ -29,9 +29,7 @@ public class Falcon {
     // * Section 3: Variables * \\
     // ************************ \\
     private static KeyPairGenerator f512KPG; private static KeyPairGenerator f1024KPG;
-    /**
-     *
-     */
+
     private KeyPair falcon512KP; private KeyPair falcon1024KP;
 
     private static Signature f512Sig; private static Signature f1024Sig;

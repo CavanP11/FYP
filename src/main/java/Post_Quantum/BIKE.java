@@ -27,8 +27,8 @@ import static org.junit.Assert.assertTrue;
 // ********************************** \\
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 3, time = 1)
-@Measurement(iterations = 5, time = 2)
+@Warmup(iterations = 2, time = 1)
+@Measurement(iterations = 4, time = 1)
 @Fork(1)
 @State(Scope.Benchmark)
 public class BIKE {

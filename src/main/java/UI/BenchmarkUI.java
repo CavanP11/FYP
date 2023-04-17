@@ -840,7 +840,7 @@ public class BenchmarkUI {
             boolean includeASMProfiler = asmProfilerCheckBox.isSelected();
 
 
-            String[] algorithms = {"Falcon", "PICNIC", "Dilithium", "Kyber", "BIKE", "AES", "SHA256", "RSA", "SHA3", "TwoFish"};
+            String[] algorithms = {"Falcon", "PICNIC", "Dilithium", "Kyber", "BIKE", "SphincsPlus", "Rainbow", "AES", "SHA256", "RSA", "SHA3", "TwoFish"};
 
             // Add the fully qualified class names here, replace "your_package_name" with the actual package name
             String[] classNames = {
@@ -849,6 +849,8 @@ public class BenchmarkUI {
                     "Post_Quantum.Dilithium",
                     "Post_Quantum.Kyber",
                     "Post_Quantum.BIKE",
+                    "Post_Quantum.SphincsPlus",
+                    "Post_Quantum.Rainbow",
                     "Pre_Quantum.AES_CTR",
                     "Pre_Quantum.SHA256_ECDSA",
                     "Pre_Quantum.RSA",
@@ -862,6 +864,8 @@ public class BenchmarkUI {
                     "Dilithium_Benchmarks.csv",
                     "Kyber_Benchmarks.csv",
                     "BIKE_Benchmarks.csv",
+                    "SphincsPlus_Benchmarks.csv",
+                    "Rainbow_Benchmarks.csv",
                     "AES-CTR_Benchmarks.csv",
                     "SHA256-EC_Benchmarks.csv",
                     "RSA_Benchmarks.csv",
@@ -881,7 +885,7 @@ public class BenchmarkUI {
                 String className = classNames[i];
                 String resultFile = resultFiles[i];
                 String subFolder = algorithms[i].contains("-") ? algorithms[i].substring(0, algorithms[i].indexOf("-")) : algorithms[i];
-                File algorithmDirectory = new File(new File(benchmarkResultsDirectory, (i < 5 ? "Post-Quantum" : "Pre-Quantum")), subFolder + " Benchmarks");
+                File algorithmDirectory = new File(new File(benchmarkResultsDirectory, (i < 7 ? "Post-Quantum" : "Pre-Quantum")), subFolder + " Benchmarks");
                 if (!algorithmDirectory.exists()) {
                     if (!algorithmDirectory.mkdirs()) {
                         System.err.println("Unable to create " + algorithmDirectory.getPath() + " directory.");

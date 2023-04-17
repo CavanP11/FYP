@@ -31,8 +31,8 @@ import java.util.concurrent.TimeUnit;
 // ********************************** \\
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 3, time = 1)
-@Measurement(iterations = 5, time = 2)
+@Warmup(iterations = 2, time = 1)
+@Measurement(iterations = 4, time = 1)
 @Fork(1)
 @State(Scope.Benchmark)
 public class RSA {
@@ -40,10 +40,9 @@ public class RSA {
     // * Section 3: Variables * \\
     // ************************ \\
     private static AsymmetricCipherKeyPair aKP;
-    private RSAEngine encryptEngine; private RSAEngine decryptEngine;
-    private byte[] signature;
-    private byte[] encrypted;
-    private byte[] plaintext;
+    private static  byte[] signature;
+    private static byte[] encrypted;
+    private static byte[] plaintext;
     // ************************* \\
     // * Section 4: Parameters * \\
     // ************************* \\
@@ -62,9 +61,6 @@ public class RSA {
         new SecureRandom().nextBytes(plaintext);
         // Generate KP for engines
         aKP = generateKey();
-        // Getting ready for encryption
-        encryptEngine = new RSAEngine(); encryptEngine.init(true, aKP.getPublic());
-        decryptEngine = new RSAEngine(); decryptEngine.init(false, aKP.getPrivate());
         // Use these in other methods
         signature = sign(); encrypted = encrypt();
     }
@@ -73,11 +69,15 @@ public class RSA {
     // ********************** \\
     @Benchmark
     public byte[] encrypt() {
+        RSAEngine encryptEngine = new RSAEngine();
+        encryptEngine.init(true, aKP.getPublic());
         return encryptEngine.processBlock(plaintext, 0 , plaintext.length);
     }
 
     @Benchmark
     public byte[] decrypt() {
+        RSAEngine decryptEngine = new RSAEngine();
+        decryptEngine.init(false, aKP.getPrivate());
         return decryptEngine.processBlock(encrypted, 0, encrypted.length);
     }
 
@@ -92,7 +92,7 @@ public class RSA {
     public byte[] sign() throws CryptoException {
         PSSSigner signer = new PSSSigner(new RSAEngine(), new SHA256Digest(), 32);
         signer.init(true, aKP.getPrivate());
-        signer.update(encrypted, 0, encrypted.length);
+        signer.update(plaintext, 0, plaintext.length);
         return signer.generateSignature();
     }
 
@@ -100,7 +100,7 @@ public class RSA {
     public boolean verify() {
         PSSSigner verifier = new PSSSigner(new RSAEngine(), new SHA256Digest(), 32);
         verifier.init(false, aKP.getPublic());
-        verifier.update(encrypted, 0, encrypted.length);
+        verifier.update(plaintext, 0, plaintext.length);
         return verifier.verifySignature(signature);
     }
     // ************************************************************* \\
