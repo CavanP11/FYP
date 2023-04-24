@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 // ********************************** \\
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 2, time = 1)
-@Measurement(iterations = 4, time = 1)
+@Warmup(iterations = 1, time = 1)
+@Measurement(iterations = 1, time = 1)
 @Fork(1)
 @State(Scope.Benchmark)
 public class Falcon {

@@ -276,7 +276,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(AES_CTR.class.getSimpleName())
-                            .result("Benchmark Results/Pre-Quantum/AES_CTR Benchmarks/AES-CTR_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/AES Benchmarks/AES-CTR_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -291,7 +291,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(SHA256_ECDSA.class.getSimpleName())
-                            .result("Benchmark Results/Pre-Quantum/SHA256-EC Benchmarks/SHA256-EC_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/SHA256 Benchmarks/SHA256-EC_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -314,14 +314,14 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                 }
-                case "SHA3" -> {
+                case "Sha3" -> {
                     try {
                         Sha3.main(new String[0]);
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
                     builder.include(Sha3.class.getSimpleName())
-                            .result("Benchmark Results/Pre-Quantum/Sha3-EC Benchmarks/RSA_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/Sha3 Benchmarks/SHA3_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -336,7 +336,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(TwoFish.class.getSimpleName())
-                            .result("Benchmark Results/Pre-Quantum/TwoFish Benchmarks/RSA_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/TwoFish Benchmarks/TwoFish_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -459,7 +459,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder2.include(AES_CTR.class.getSimpleName())
-                            .result("Benchmark Results/Pre-Quantum/AES_CTR Benchmarks/AES-CTR_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/AES Benchmarks/AES-CTR_Benchmarks.csv");
                     Options options = builder2.build();
                     try {
                         new Runner(options).run();
@@ -474,7 +474,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder2.include(SHA256_ECDSA.class.getSimpleName())
-                            .result("Benchmark Results/Pre-Quantum/SHA256-EC Benchmarks/SHA256-EC_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/SHA256 Benchmarks/SHA256-EC_Benchmarks.csv");
                     Options options = builder2.build();
                     try {
                         new Runner(options).run();
@@ -497,14 +497,14 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                 }
-                case "SHA3" -> {
+                case "Sha3" -> {
                     try {
                         Sha3.main(new String[0]);
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
                     builder2.include(Sha3.class.getSimpleName())
-                            .result("Benchmark Results/Pre-Quantum/Sha3-EC Benchmarks/RSA_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/Sha3 Benchmarks/SHA3_Benchmarks.csv");
                     Options options = builder2.build();
                     try {
                         new Runner(options).run();
@@ -519,7 +519,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder2.include(TwoFish.class.getSimpleName())
-                            .result("Benchmark Results/Pre-Quantum/TwoFish Benchmarks/RSA_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/TwoFish Benchmarks/TwoFish_Benchmarks.csv");
                     Options options = builder2.build();
                     try {
                         new Runner(options).run();
@@ -724,7 +724,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(AES_CTR.class.getSimpleName())
-                            .result("Benchmark Results/Pre-Quantum/AES_CTR Benchmarks/AES-CTR_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/AES Benchmarks/AES-CTR_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -739,7 +739,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(SHA256_ECDSA.class.getSimpleName())
-                            .result("Benchmark Results/Pre-Quantum/SHA256-EC Benchmarks/SHA256-EC_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/SHA256 Benchmarks/SHA256-EC_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -762,14 +762,14 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                 }
-                case "SHA3" -> {
+                case "Sha3" -> {
                     try {
                         Sha3.main(new String[0]);
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
                     builder.include(Sha3.class.getSimpleName())
-                            .result("Benchmark Results/Pre-Quantum/Sha3-EC Benchmarks/RSA_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/Sha3 Benchmarks/SHA3_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -784,7 +784,7 @@ public class BenchmarkUI {
                         throw new RuntimeException(ex);
                     }
                     builder.include(TwoFish.class.getSimpleName())
-                            .result("Benchmark Results/Pre-Quantum/TwoFish Benchmarks/RSA_Benchmarks.csv");
+                            .result("Benchmark Results/Pre-Quantum/TwoFish Benchmarks/TwoFish_Benchmarks.csv");
                     Options options = builder.build();
                     try {
                         new Runner(options).run();
@@ -867,7 +867,7 @@ public class BenchmarkUI {
                     "SphincsPlus_Benchmarks.csv",
                     "Rainbow_Benchmarks.csv",
                     "AES-CTR_Benchmarks.csv",
-                    "SHA256-EC_Benchmarks.csv",
+                    "SHA256_Benchmarks.csv",
                     "RSA_Benchmarks.csv",
                     "SHA3_Benchmarks.csv",
                     "TwoFish_Benchmarks.csv",
